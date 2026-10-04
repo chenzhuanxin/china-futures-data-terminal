@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# 临时 / 测试产物
+_shot/
+_v/
+_bak_data/
+_dry*.bat
+_dry*.log
+_dry*.txt
+_srv*.log
+_chk.js
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+*.swp
+
+# data/ 为采集产出（约 41MB、254 个文件，可由 采集期货数据.py 重新生成），
+# 仓库默认不收录；完整数据已打包在 release/ 的「完整项目包」中，
+# 也可克隆后运行 python 采集期货数据.py 自行生成。
+# 如需把原始数据随仓库发布，注释掉下面这行即可：
+data/
+
+# PyInstaller 打包中间产物（dist/ 打包后会把 exe 复制到根目录，不再需要）
+build/
+dist/

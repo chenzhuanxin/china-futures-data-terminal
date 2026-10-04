@@ -1,0 +1,1902 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>国内期货全量数据终端</title>
+<style>
+:root{
+  --bg:#eef2f7; --panel:#fff; --panel2:#f7f9fc; --line:#dfe6ef; --line2:#eaeff5;
+  --txt:#1b2432; --txt2:#5b6b80; --txt3:#8b9aad;
+  --accent:#2563eb; --accent2:#1d4ed8; --accent-soft:#eaf1ff;
+  --up:#d8342b; --down:#0a9d5c; --flat:#6b7a8d;
+  --warn:#b06a05; --warnbg:#fdf5e6;
+  --radius:10px; --shadow:0 1px 2px rgba(16,32,64,.05),0 6px 20px rgba(16,32,64,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);
+  font:13px/1.55 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1600px;margin:0 auto;padding:0 20px}
+header{background:linear-gradient(180deg,#fff,#fbfcfe);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:60;box-shadow:0 1px 0 rgba(16,32,64,.03)}
+.hd{display:flex;align-items:center;gap:16px;height:58px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.logo .mark{width:28px;height:28px;border-radius:8px;flex:none;background:linear-gradient(135deg,#2563eb,#0ea5e9);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:800}
+.hd .sub{color:var(--txt3);font-size:12px;border-left:1px solid var(--line);padding-left:14px}
+.hd .spacer{flex:1}
+.hd .rbtns{display:flex;align-items:center;gap:10px;flex:none}
+.hd .rbtns .lstat{font-size:11.5px;color:var(--txt3);white-space:nowrap}
+.hd .rbtns .lstat.err{color:#c0392b}
+.hd .meta{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.pill{font-size:11.5px;padding:3px 9px;border-radius:20px;background:var(--panel2);border:1px solid var(--line);
+  color:var(--txt2);white-space:nowrap}
+.pill b{color:var(--txt);font-weight:600}
+.pill.live{background:#e9f7f0;border-color:#c6ebd8;color:#0a7a48}
+.tabs{display:flex;gap:2px;overflow-x:auto}
+.tabs button{appearance:none;border:0;background:transparent;font:inherit;font-size:13px;color:var(--txt2);
+  padding:11px 14px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button:hover{color:var(--txt);background:var(--panel2)}
+.tabs button.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+main{padding:18px 0 60px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.card>.hd2{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line2);flex-wrap:wrap}
+.card>.hd2 h3{margin:0;font-size:14px;font-weight:650}
+.card>.hd2 .desc{color:var(--txt3);font-size:12px;flex:1;min-width:180px}
+.card>.bd{padding:14px 16px}
+.card>.bd.flush{padding:0}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1180px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+select,input{font:inherit;font-size:12.5px;padding:6px 10px;border:1px solid var(--line);
+  border-radius:7px;background:#fff;color:var(--txt);outline:none;min-width:0}
+select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+input[type=search],input[type=text]{min-width:190px}
+button.btn,.btn{font:inherit;font-size:12.5px;padding:6px 12px;border-radius:7px;border:1px solid var(--line);
+  background:#fff;color:var(--txt);cursor:pointer;white-space:nowrap;display:inline-block}
+button.btn:hover,.btn:hover{border-color:#c3cfe0;background:var(--panel2);text-decoration:none}
+button.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.btn.primary:hover{background:var(--accent2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--line);background:#fff;
+  color:var(--txt2);cursor:pointer;user-select:none}
+.chip:hover{border-color:#c3cfe0}
+.chip.on{background:var(--accent-soft);border-color:#bed3ff;color:var(--accent2);font-weight:600}
+.chip b{opacity:.6;font-weight:500}
+.sep{width:1px;height:20px;background:var(--line);margin:0 2px}
+.tw{overflow:auto;max-height:660px;border-top:1px solid var(--line2)}
+.tw.short{max-height:420px}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px}
+thead th{position:sticky;top:0;z-index:2;background:var(--panel2);text-align:right;font-weight:600;
+  color:var(--txt2);padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+thead th:first-child,thead th.l{text-align:left}
+thead th:hover{color:var(--accent)}
+thead th .ar{opacity:.3;font-size:10px;margin-left:3px}
+thead th.sorted{color:var(--accent)}
+thead th.sorted .ar{opacity:1}
+tbody td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line2);white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+tbody td:first-child,tbody td.l{text-align:left}
+tbody tr:hover{background:#f6f9ff}
+td.name{font-weight:600}
+.up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--flat)}
+.tag{display:inline-block;font-size:10.5px;padding:1px 6px;border-radius:4px;background:var(--panel2);
+  border:1px solid var(--line);color:var(--txt2);margin-left:6px;vertical-align:1px}
+.tag.k-real{background:#eef6ff;border-color:#cfe2ff;color:#1f5fbf}
+.tag.k-main_link{background:#fdeceb;border-color:#f8d4d1;color:#b32b23}
+.tag.k-sub_main_link{background:#f6f0ff;border-color:#e0d3fa;color:#6b3fc4}
+.tag.k-month_link,.tag.k-continuous,.tag.k-index{background:#eef7f1;border-color:#cdeada;color:#0a7a48}
+.empty{padding:40px 16px;text-align:center;color:var(--txt3)}
+.mini{font-size:11.5px;color:var(--txt3)}
+.pager{display:flex;gap:6px;align-items:center;justify-content:flex-end;padding:10px 16px;
+  border-top:1px solid var(--line2);font-size:12.5px;color:var(--txt2);flex-wrap:wrap}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow)}
+.kpi .k{color:var(--txt3);font-size:11.5px;margin-bottom:4px}
+.kpi .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.25}
+.kpi .x{font-size:11.5px;color:var(--txt3);margin-top:3px}
+.notice{padding:10px 14px;border-radius:8px;font-size:12.5px;margin-bottom:12px;border:1px solid;
+  line-height:1.7}
+.notice .spin{margin-right:7px}
+.notice.info{background:#eff6ff;border-color:#cfe2ff;color:#1e4f9c}
+.notice.warn{background:var(--warnbg);border-color:#f0dcb4;color:var(--warn)}
+.notice.err{background:#fdf0ef;border-color:#f7d3d0;color:#b32b23}
+.notice.ok{background:#eefaf3;border-color:#c8ebd9;color:#0a7a48}
+.notice code{background:rgba(0,0,0,.05);padding:1px 4px;border-radius:3px;font-size:11.5px}
+.chartbox{border:1px solid var(--line2);border-radius:8px;overflow:hidden;background:#fff}
+.chart{width:100%;height:580px}
+/* K线页「当前行情」面板 */
+.qwrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:13px 16px;margin-bottom:16px}
+.qhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:11px}
+.qhead h3{margin:0;font-size:14px;font-weight:650;white-space:nowrap}
+.qhead .qname{font-size:12.5px;color:var(--txt2)}
+.qhead .sp{flex:1;min-width:0}
+.qgrid{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(104px,1fr))}
+.qcell{background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;min-width:0}
+.qcell .qk{display:block;color:var(--txt3);font-size:11px;margin-bottom:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qcell .qv{display:block;font-size:15.5px;font-weight:700;font-variant-numeric:tabular-nums;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qcell .qx{display:block;font-size:11px;color:var(--txt3);margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qcell.pri{background:linear-gradient(135deg,#f6f9ff,#eaf2ff);border-color:#d5e2fb}
+.qcell.pri .qv{font-size:22px}
+.newscard{border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;background:#fff;box-shadow:var(--shadow)}
+.newscard h4{margin:0 0 8px;font-size:13.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.newscard .links{display:flex;flex-direction:column;gap:6px}
+.newscard .links a{font-size:12.5px;display:flex;align-items:center;gap:6px}
+.newscard .links .none{color:var(--txt3);font-size:11.5px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
+.dot.em{background:#e2683a}.dot.sina{background:#c0392b}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid #cbd5e1;border-top-color:var(--accent);
+  border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;flex:none;margin-top:2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* ---------------- 数据源说明（页脚卡片，位于免责声明上方） ---------------- */
+.srcbox{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);margin:14px 0 16px;overflow:hidden}
+footer .srcbox{margin:16px 0 0;box-shadow:none;background:#fbfdff}
+.srcbox .shd{display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;
+  user-select:none;flex-wrap:wrap}
+.srcbox .shd b{font-size:13px;flex:none}
+.srcbox .shd .sum{color:var(--txt3);font-size:12px;flex:1;min-width:220px}
+.srcbox .shd .tog{font-size:11.5px;color:var(--accent);white-space:nowrap;flex:none}
+.srcbox .sbd{padding:0 16px 6px;border-top:1px dashed var(--line)}
+.srcbox .li{display:flex;gap:8px;align-items:flex-start;line-height:1.7;padding:7px 0}
+.srcbox .li + .li{border-top:1px dashed var(--line2)}
+.srcbox .li .n{flex:none;width:16px;height:16px;border-radius:50%;background:var(--accent-soft);
+  color:var(--accent);font-size:10.5px;font-weight:700;display:flex;align-items:center;
+  justify-content:center;margin-top:3px}
+.srcbox .li .u{color:var(--txt3);font-size:11.5px}
+footer{padding:0 0 40px;color:var(--txt3);font-size:12px;line-height:1.8}
+footer .fbox{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:16px 18px}
+footer .fgrid{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+footer .fcol{flex:1;min-width:260px}
+footer .fcol h5{margin:0 0 9px;font-size:12.5px;color:var(--txt);font-weight:700;letter-spacing:.2px}
+footer .fsrc .use{color:var(--txt3);font-size:11.5px}
+footer .authorbox{flex:none;min-width:250px;background:linear-gradient(135deg,#f7faff,#eef4ff);
+  border:1px solid #d8e6ff;border-radius:10px;padding:14px 18px}
+footer .authorbox .lbl{font-size:11.5px;color:var(--txt3);letter-spacing:.6px}
+footer .authorbox .nm{font-size:16px;font-weight:800;color:var(--txt);margin-top:3px;letter-spacing:.5px}
+footer .authorbox .wx{font-size:13px;color:var(--txt2);margin-top:6px}
+footer .authorbox .wx b{color:#0a7a48;font-family:ui-monospace,Consolas,Menlo,monospace;letter-spacing:.6px}
+footer .fnote{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);
+  font-size:11.5px;color:var(--txt3);line-height:1.78}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="hd">
+      <div class="logo"><span class="mark">期</span><span>国内期货全量数据终端</span></div>
+      <div class="spacer"></div>
+      <div class="rbtns" id="rbtns"></div>
+      <div class="meta" id="hmeta"></div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+  </div>
+</header>
+<main>
+  <div class="wrap" id="view"></div>
+</main>
+<footer id="foot"></footer>
+
+<script>/*__ECHARTS__*/</script>
+<script>/*__XLSX__*/</script>
+<script>window.__DATA__ = /*__DATA__*/{};</script>
+<script>
+"use strict";
+/* =====================================================================
+   国内期货全量数据终端
+   数据源：东方财富（期货行情 futsseapi / 数据中心龙虎榜 datacenter-web）
+           新浪财经（期货 K 线 stock2 JSONP）
+   ===================================================================== */
+const D = window.__DATA__ || {};
+const CONTRACTS = D.contracts || [];
+const VARIETIES = D.varieties || [];
+const CATS = (D.categories && D.categories.categories) || {};
+const STATS = (D.categories && D.categories.stats) || {};
+const WEIGHTED = D.weighted || {};
+const NEWS = D.newslinks || {};
+const META = D.meta || {};
+const LHB_INDEX = D.lhbIndex || {};
+const KLINE_CORE = D.klineCoreIndex || {};
+
+/* =====================================================================
+   应用信息 · 数据源登记 · 作者信息
+   （页头数据源条、页脚、各页数据源标注统一引用此处，避免多处不一致）
+   ===================================================================== */
+const APP = {
+  name: "国内期货全量数据终端",
+  version: "1.0.0",
+  author: "陈专新",
+  wechat: "gongqizi0",
+  sources: [
+    { key:"emq", name:"东方财富 · 期货行情接口", host:"futsseapi.eastmoney.com",
+      url:"https://qhweb.eastmoney.com/quote", color:"#e2683a",
+      use:"国内全部期货合约的实时行情快照（最新价 / 涨跌 / 成交 / 持仓 / 夜盘 / 交割月等）" },
+    { key:"lhb", name:"东方财富 · 数据中心 · 期货龙虎榜", host:"datacenter-web.eastmoney.com",
+      url:"https://data.eastmoney.com/futures/dl/data.html", color:"#e2683a",
+      use:"会员成交持仓排名 / 持仓结构 / 建仓过程 / 持仓均价 / 盈亏分析" },
+    { key:"sina", name:"新浪财经 · 期货 K 线接口", host:"stock2.finance.sina.com.cn",
+      url:"https://finance.sina.com.cn/futures/quotes/RB.shtml", color:"#c0392b",
+      use:"分时 / 5·15·30·60 分 / 日 / 周 / 月 / 年 K 线全量历史（周月年由日K聚合）" },
+    { key:"emnews", name:"东方财富 · 期货品种资讯页", host:"futures.eastmoney.com",
+      url:"https://futures.eastmoney.com/a/adp.html", color:"#e2683a",
+      use:"各品种资讯页 / 品种评论页链接" },
+    { key:"sinanews", name:"新浪财经 · 期货品种资讯页", host:"finance.sina.com.cn/money/future",
+      url:"http://finance.sina.com.cn/money/future/CJ/", color:"#c0392b",
+      use:"各品种资讯频道 / 品种行情页链接" },
+  ],
+};
+function srcBy(key){ return APP.sources.find(s => s.key === key) || {}; }
+/* 页脚「数据源说明」卡片（位于免责声明上方，点击标题可展开 / 收起，状态本地记忆） */
+const SRC_SUMMARY = "东方财富 · 期货行情 / 龙虎榜 / 品种资讯　│　新浪财经 · 期货 K 线 / 品种资讯"
+  + "　—— 全部为公开线上真实数据，点击条目名称可打开数据源官网";
+function renderSrcbar(){
+  const b = $("#srcbar"); if(!b) return;
+  b.innerHTML = "";
+  let open = true;
+  try{ open = localStorage.getItem("fut_src_open") !== "0"; }catch(e){}
+  const body = el("div",{class:"sbd"});
+  const tog = el("span",{class:"tog"});
+  const paint = () => {
+    body.innerHTML = "";
+    tog.innerHTML = open ? "收起 ▴" : "展开说明 ▾";
+    if(open) APP.sources.forEach((s,i) => body.append(el("div",{class:"li"},
+      el("span",{class:"n", html:String(i+1)}),
+      el("div",{},
+        el("div",{}, el("a",{href:s.url, target:"_blank", html:s.name + "　↗"}),
+          el("span",{class:"u", html:"（"+s.host+"）"})),
+        el("div",{class:"u", html:"用途："+s.use})))));
+  };
+  paint();
+  b.append(el("div",{class:"shd", onclick:()=>{
+      open = !open;
+      try{ localStorage.setItem("fut_src_open", open ? "1" : "0"); }catch(e){}
+      paint();
+    }},
+    el("b",{html:"数据源说明"}),
+    el("span",{class:"sum", html:SRC_SUMMARY}),
+    tog), body);
+}
+/* 页脚：数据覆盖口径 + 作者信息 + 数据源说明 + 免责说明 */
+function renderFooter(){
+  const f = $("#foot"); if(!f) return;
+  f.innerHTML = "";
+  const box = el("div",{class:"fbox"});
+  const grid = el("div",{class:"fgrid"});
+
+  const col2 = el("div",{class:"fcol"}, el("h5",{html:"数据覆盖与口径"}));
+  col2.append(el("div",{class:"use", style:"font-size:12px;color:var(--txt2);line-height:1.85", html:
+    `合约 <b>${num(STATS.total||CONTRACTS.length)}</b> 个（真实合约 <b>${num(STATS.realCount||0)}</b> 个）　`
+    + `品种 <b>${VARIETIES.length}</b> 个　加权合约 <b>${META.weightedCount||0}</b> 个　`
+    + `龙虎榜快照 <b>${META.lhbCount||0}</b> 个合约<br>`
+    + "行情为生成时刻快照；K 线为打开页面时按需联网拉取的全量历史；"
+    + "品种加权合约由<b>真实月份合约按持仓量加权自算</b>，不含主连 / 次主连 / 连续 / 加权指数 / 月均等衍生代码。"
+    + "所有数值均直接取自上述公开接口，未作任何模拟、插值或补全。"}));
+
+  const author = el("div",{class:"authorbox"},
+    el("div",{class:"lbl", html:"设 计 / 制 作"}),
+    el("div",{class:"nm", html:APP.author}),
+    el("div",{class:"wx", html:"微信：<b>"+APP.wechat+"</b>"}),
+    el("div",{class:"use", style:"margin-top:8px;font-size:11.5px;color:var(--txt3)",
+      html:APP.name+"　v"+APP.version}));
+
+  grid.append(col2, author);
+  box.append(grid);
+  box.append(el("div",{class:"srcbox", id:"srcbar"}));      // 数据源说明（免责声明上方）
+  box.append(el("div",{class:"fnote", html:
+    "免责声明：本页面为数据聚合工具，所有行情、K 线与龙虎榜数据均来源于东方财富、新浪财经的公开接口，"
+    + "版权与最终解释权归数据提供方所有。数据仅供学习与研究参考，<b>不构成任何投资建议</b>，据此操作风险自担。"}));
+  f.append(box);
+  renderSrcbar();
+}
+
+/* =====================================================================
+   实时更新：「更新数据」按钮 + 每 2 分钟自动刷新
+   联网拉取东方财富 6 大市场整市行情列表，就地合并进当前页面数据并重绘
+   ===================================================================== */
+const LIVE = {timer:null, busy:false, lastAt:null, lastN:0};
+const LIVE_MS = 2 * 60 * 1000;                    // 自动刷新间隔：2 分钟
+const LIVE_MKTS = ["113","114","115","225","142","220"];
+const LIVE_FIELDS = ["p","zde","zdf","o","h","l","zjsj","jjsj","vol","ccl","rz","cje","zf","wp","np"];
+let LIVE_IDX = null;
+function liveIndex(){
+  if(LIVE_IDX) return LIVE_IDX;
+  LIVE_IDX = new Map();
+  CONTRACTS.forEach(c => LIVE_IDX.set(c.market + "|" + String(c.codeUpper||c.code||"").toUpperCase(), c));
+  return LIVE_IDX;
+}
+function typingInForm(){
+  const a = document.activeElement;
+  return !!(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName));
+}
+function paintLive(err){
+  const b = $("#liveBtn"), s = $("#liveStatus"); if(!b) return;
+  b.disabled = LIVE.busy;
+  b.innerHTML = LIVE.busy ? "更新中…" : "更新数据";
+  if(s){
+    s.classList.toggle("err", !!err);
+    if(LIVE.busy) s.innerHTML = "正在拉取最新行情…";
+    else if(err) s.innerHTML = "更新失败：" + err + "　将于 2 分钟后重试";
+    else if(LIVE.lastAt) s.innerHTML = "已更新 " + num(LIVE.lastN) + " 个合约　" + LIVE.lastAt + "　每 2 分钟自动更新";
+    else s.innerHTML = "每 2 分钟自动更新";
+  }
+}
+async function refreshLiveData(){
+  if(LIVE.busy) return;
+  LIVE.busy = true; paintLive();
+  let err = null;
+  try{
+    const lists = await Promise.all(LIVE_MKTS.map(m =>
+      emQuotes(m).then(l => l.map(it => (it._m = m, it))).catch(() => null)));
+    const idx = liveIndex();
+    let n = 0;
+    lists.forEach(list => (list||[]).forEach(it => {
+      const code = String(it.dm||"").toUpperCase(); if(!code) return;
+      const c = idx.get(it._m + "|" + code); if(!c) return;
+      LIVE_FIELDS.forEach(f => { if(it[f] !== undefined && it[f] !== null) c[f] = it[f]; });
+      n++;
+    }));
+    if(!n) throw new Error("未获取到合约行情");
+    LIVE.lastAt = nowStr(); LIVE.lastN = n;
+    META.generatedAt = todayStr() + " " + LIVE.lastAt;   // 「数据时间」跟随最新一次刷新
+    applyRefreshedView();
+  }catch(e){
+    err = e.message || String(e);
+  }finally{
+    LIVE.busy = false;
+    paintLive(err);
+  }
+}
+/* 数据刷新后的重绘：行情 / 表格页整页重绘（保持滚动位置），K线页只刷新当前行情面板 */
+function applyRefreshedView(){
+  renderHeader();
+  if(PAGE === "kline"){
+    if(KLQ.seq && $("#klquote")) renderKlQuote({silent:true});
+    return;
+  }
+  if(typingInForm()) return;                 // 正在输入时重绘会打断输入，等下个周期
+  const y = window.scrollY;
+  const f = RENDER[PAGE]; if(f) f();
+  window.scrollTo(0, y);
+}
+function clearQuoteCaches(){
+  Object.keys(QT_ONE).forEach(k => delete QT_ONE[k]);
+  Object.keys(QT_MKT).forEach(k => delete QT_MKT[k]);
+}
+function initLiveRefresh(){
+  const box = $("#rbtns"); if(!box) return;
+  box.append(el("span",{class:"lstat", id:"liveStatus"}));
+  box.append(el("button",{class:"btn primary", id:"liveBtn", onclick:()=>{
+    clearQuoteCaches();
+    refreshLiveData();
+  }, html:"更新数据"}));
+  paintLive();
+  LIVE.timer = setInterval(()=>{
+    if(document.hidden || LIVE.busy || typingInForm()) return;
+    refreshLiveData();
+  }, LIVE_MS);
+  document.addEventListener("visibilitychange", ()=>{
+    if(!document.hidden) paintLive();       // 回到页面即恢复状态显示
+  });
+}
+
+const VAR_BY = {}; VARIETIES.forEach(v => VAR_BY[v.variety] = v);
+const KIND_LABEL = {real:"真实合约",main_link:"主连",sub_main_link:"次主连",
+  month_link:"月连续",continuous:"连续",index:"加权/指数"};
+const PERIODS = [{k:"1",n:"分时(1分)"},{k:"5",n:"5分钟"},{k:"15",n:"15分钟"},
+  {k:"30",n:"30分钟"},{k:"60",n:"60分钟"},{k:"day",n:"日K"},{k:"week",n:"周K"},
+  {k:"month",n:"月K"},{k:"year",n:"年K"}];
+
+/* 中文别名 -> 品种代码（数据源原始名称如「沪金」，此处补齐常用叫法） */
+const SEARCH_ALIAS = {
+  "黄金":"AU","沪金":"AU","白银":"AG","沪银":"AG","铜":"CU","沪铜":"CU","电解铜":"CU",
+  "铝":"AL","沪铝":"AL","氧化铝":"AO","锌":"ZN","沪锌":"ZN","铅":"PB","沪铅":"PB",
+  "镍":"NI","沪镍":"NI","锡":"SN","沪锡":"SN","不锈钢":"SS","螺纹":"RB","螺纹钢":"RB",
+  "热卷":"HC","热轧":"HC","线材":"WR","铁矿石":"I","矿石":"I","焦炭":"J","焦煤":"JM",
+  "豆一":"A","豆二":"B","大豆":"A","豆粕":"M","豆油":"Y","棕榈油":"P","棕油":"P",
+  "玉米":"C","淀粉":"CS","鸡蛋":"JD","生猪":"LH","塑料":"L","聚乙烯":"L","聚丙烯":"PP",
+  "pvc":"V","苯乙烯":"EB","乙二醇":"EG","PTA":"TA","甲醇":"MA","玻璃":"FG","纯碱":"SA",
+  "尿素":"UR","短纤":"PF","棉花":"CF","棉纱":"CY","白糖":"SR","菜油":"OI","菜籽油":"OI",
+  "菜粕":"RM","菜籽粕":"RM","花生":"PK","橡胶":"RU","天胶":"RU","20号胶":"NR","丁二烯":"BR",
+  "燃油":"FU","燃料油":"FU","低硫燃油":"LU","沥青":"BU","纸浆":"SP","原油":"SC",
+  "国际铜":"BC","碳酸锂":"LC","锂":"LC","工业硅":"SI","多晶硅":"PS","集运":"EC","集运指数":"EC",
+  "原木":"LG","铸造铝合金":"AD","动力煤":"ZC","胶合板":"FB","股指":"IF","沪深300":"IF",
+  "上证50":"IH","中证500":"IC","中证1000":"IM","国债":"T","十年债":"T","五年债":"TF",
+  "二年债":"TS","三十年债":"TL","30年国债":"TL",
+};
+/* 合约搜索（四类关键词 + 中文别名），总览页与合约页共用 */
+function filterContracts(list, kwRaw){
+  const k = String(kwRaw||"").trim().toLowerCase();
+  if(!k) return list;
+  const alias = SEARCH_ALIAS[k.trim()] || SEARCH_ALIAS[k.trim().toUpperCase()];
+  return list.filter(c =>
+    ["code","name","variety","varietyName"].some(s =>
+      String(c[s]===undefined?"":c[s]).toLowerCase().includes(k))
+    || (alias && c.variety === alias));
+}
+
+/* ---------------- utils ---------------- */
+const $ = s => document.querySelector(s);
+function el(tag, attrs, ...kids){
+  const n = document.createElement(tag);
+  for(const k in (attrs||{})){
+    const v = attrs[k];
+    if(v === null || v === undefined) continue;
+    if(k === "class") n.className = v;
+    else if(k === "html") n.innerHTML = v;
+    else if(k === "style") n.setAttribute("style", v);
+    else if(k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v);
+  }
+  kids.flat().forEach(k => { if(k !== null && k !== undefined) n.append(k.nodeType ? k : document.createTextNode(k)); });
+  return n;
+}
+function num(v){ if(v===null||v===undefined||v===""||isNaN(v)) return "--";
+  return Number(v).toLocaleString("zh-CN",{maximumFractionDigits:0}); }
+function num2(v){ if(v===null||v===undefined||v===""||isNaN(v)) return "--"; return Number(v).toFixed(2); }
+function big(v){ if(v===null||v===undefined||v===""||isNaN(v)) return "--"; v = Number(v);
+  if(Math.abs(v)>=1e8) return (v/1e8).toFixed(2)+"亿";
+  if(Math.abs(v)>=1e4) return (v/1e4).toFixed(2)+"万";
+  return num(v); }
+function cls(v){ if(v===null||v===undefined||v===""||isNaN(v)||Number(v)===0) return "flat";
+  return Number(v)>0 ? "up" : "down"; }
+function sign(v,d){ if(v===null||v===undefined||v===""||isNaN(v)) return "--";
+  const s = Number(v).toFixed(d===undefined?2:d); return Number(v)>0 ? "+"+s : s; }
+function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")
+  +"-"+String(d.getDate()).padStart(2,"0"); }
+
+/* ---------------- Excel 导出 ---------------- */
+function exportSheet(rows, header, filename, sheetName){
+  if(!rows || !rows.length){ toast("没有可导出的数据","warn"); return; }
+  const aoa = [header.map(h => h.label || h)];
+  rows.forEach(r => aoa.push(header.map(h => { const v = r[h.key]; return (v===undefined||v===null)?"":v; })));
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"] = header.map(h => ({wch:h.w||12}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, String(sheetName||"Sheet1").slice(0,31));
+  XLSX.writeFile(wb, filename);
+  toast("已导出 " + rows.length + " 行");
+}
+function exportMulti(sheets, filename){
+  const wb = XLSX.utils.book_new(); let n = 0;
+  sheets.forEach(s => {
+    if(!s.rows || !s.rows.length) return;
+    const aoa = [s.header.map(h => h.label||h)];
+    s.rows.forEach(r => aoa.push(s.header.map(h => { const v = r[h.key]; return (v===undefined||v===null)?"":v; })));
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws["!cols"] = s.header.map(h => ({wch:h.w||12}));
+    XLSX.utils.book_append_sheet(wb, ws, String(s.name||("Sheet"+(n+1))).slice(0,31));
+    n++;
+  });
+  if(!n){ toast("没有可导出的数据","warn"); return; }
+  XLSX.writeFile(wb, filename);
+  toast("已导出 " + n + " 个工作表");
+}
+let _toastT = null;
+function toast(msg, type){
+  let t = $("#toast");
+  if(!t){
+    t = el("div",{id:"toast", style:"position:fixed;left:50%;top:78px;transform:translateX(-50%);z-index:999;"
+      +"padding:9px 16px;border-radius:8px;font-size:13px;box-shadow:0 8px 24px rgba(16,32,64,.18);"
+      +"transition:opacity .25s;pointer-events:none"});
+    document.body.append(t);
+  }
+  t.textContent = msg;
+  t.style.background = type==="err" ? "#fdf0ef" : type==="warn" ? "#fdf5e6" : "#eff6ff";
+  t.style.color = type==="err" ? "#b32b23" : type==="warn" ? "#b06a05" : "#1e4f9c";
+  t.style.border = "1px solid " + (type==="err"?"#f7d3d0":type==="warn"?"#f0dcb4":"#cfe2ff");
+  t.style.opacity = 1;
+  clearTimeout(_toastT);
+  _toastT = setTimeout(()=>{ t.style.opacity = 0; }, 2800);
+}
+
+/* ---------------- 数据获取层 ---------------- */
+let _seq = 0;
+/* 新浪 K 线：JSONP（不受 CORS 限制，本地双击打开也能用） */
+function sinaJSONP(symbol, period){
+  return new Promise((resolve, reject)=>{
+    const isDay = (period === "day");
+    const varName = "_sk" + (++_seq);
+    const api = isDay ? "getDailyKLine" : "getFewMinLine";
+    const extra = isDay ? "" : ("&type=" + encodeURIComponent(period));
+    const url = "https://stock2.finance.sina.com.cn/futures/api/jsonp.php/var%20" + varName
+      + "=/InnerFuturesNewService." + api + "?symbol=" + encodeURIComponent(symbol) + extra
+      + "&_=" + Date.now();
+    const s = document.createElement("script");
+    const done = (ok, val)=>{
+      clearTimeout(timer); if(s.parentNode) s.remove();
+      try{ delete window[varName]; }catch(e){ window[varName] = undefined; }
+      ok ? resolve(val) : reject(val);
+    };
+    const timer = setTimeout(()=>done(false, new Error("请求超时（20 秒）")), 20000);
+    s.onload = ()=>done(true, window[varName] || []);
+    s.onerror = ()=>done(false, new Error("脚本加载失败"));
+    s.src = url;
+    document.head.append(s);
+  });
+}
+/* 东财数据中心（龙虎榜）：JSONP */
+function dcJSONP(params){
+  return new Promise((resolve, reject)=>{
+    const cb = "_dc" + (++_seq);
+    const q = new URLSearchParams(Object.assign(
+      {callback:cb, source:"WEB", client:"WEB", columns:"ALL"}, params));
+    const url = "https://datacenter-web.eastmoney.com/api/data/v1/get?" + q.toString();
+    const s = document.createElement("script");
+    const done = (ok, val)=>{
+      clearTimeout(timer); if(s.parentNode) s.remove();
+      try{ delete window[cb]; }catch(e){ window[cb] = undefined; }
+      ok ? resolve(val) : reject(val);
+    };
+    const timer = setTimeout(()=>done(false, new Error("请求超时（25 秒）")), 25000);
+    window[cb] = d => done(true, d);
+    s.onerror = ()=>done(false, new Error("脚本加载失败"));
+    s.src = url;
+    document.head.append(s);
+  });
+}
+/* 东财行情快照：CORS 直连 */
+async function emQuotes(market){
+  const u = "https://futsseapi.eastmoney.com/list/" + market
+    + "?orderBy=dm&sort=asc&pageIndex=0&pageSize=500&_=" + Date.now();
+  const r = await fetch(u);
+  return (await r.json()).list || [];
+}
+/* 东财单合约实时行情：static/{市场}_{合约代码}（含主连，已摘牌返回 nodata） */
+const QT_ONE = {}, QT_ONE_TTL = 12000;
+async function emQuoteOne(market, emCode){
+  const key = market + "|" + String(emCode).toUpperCase();
+  const c = QT_ONE[key];
+  if(c && Date.now() - c.at < QT_ONE_TTL) return c.qt;
+  const u = "https://futsseapi.eastmoney.com/static/" + market + "_"
+    + encodeURIComponent(emCode) + "?_=" + Date.now();
+  const r = await fetch(u);
+  if(!r.ok) throw new Error("HTTP " + r.status);
+  const j = await r.json();
+  const qt = (j && j.qt) ? j.qt : null;
+  QT_ONE[key] = {at:Date.now(), qt};
+  return qt;
+}
+/* 东财整市场行情列表（加权合约按成员统计用，按市场缓存，避免逐合约请求） */
+const QT_MKT = {}, QT_MKT_TTL = 12000;
+async function emMarketList(market){
+  const c = QT_MKT[market];
+  if(c && Date.now() - c.at < QT_MKT_TTL) return c.list;
+  const list = await emQuotes(market);
+  QT_MKT[market] = {at:Date.now(), list};
+  return list;
+}
+const IS_HTTP = (location.protocol === "http:" || location.protocol === "https:");
+async function loadLocal(path){
+  const r = await fetch(path + "?t=" + Date.now());
+  if(!r.ok) throw new Error("HTTP " + r.status);
+  return r.json();
+}
+/* 龙虎榜合约代码：上期能源/广期所小写；郑商所 3 位月份需补全年份 */
+function toLhbCode(rec){
+  const m = /^([A-Za-z]+)(\d+)$/.exec(String(rec.code||""));
+  if(!m) return String(rec.code||"").toUpperCase();
+  let digits = m[2];
+  if(digits.length === 3) digits = "2" + digits;
+  const code = m[1] + digits;
+  return (rec.exch === "INE" || rec.exch === "GFEX") ? code.toLowerCase() : code.toUpperCase();
+}
+
+/* ---------------- 周/月/年 K 由日K全量聚合 ---------------- */
+function aggregate(rows, mode){
+  if(!rows.length) return [];
+  const out = [];
+  const keyOf = d => {
+    const p = d.split("-").map(Number);
+    if(mode === "week"){
+      const t = new Date(Date.UTC(p[0], p[1]-1, p[2]));
+      const wd = (t.getUTCDay()+6) % 7;
+      t.setUTCDate(t.getUTCDate() - wd);
+      return t.toISOString().slice(0,10);
+    }
+    return mode === "month" ? d.slice(0,7) : d.slice(0,4);
+  };
+  let cur = null;
+  rows.forEach(r => {
+    const k = keyOf(r.d);
+    if(!cur || cur.k !== k){
+      cur = {k, d:r.d, o:+r.o, h:+r.h, l:+r.l, c:+r.c, v:+(r.v||0), p:+(r.p||0)};
+      out.push(cur);
+    } else {
+      cur.h = Math.max(cur.h, +r.h); cur.l = Math.min(cur.l, +r.l);
+      cur.c = +r.c; cur.v += +(r.v||0); cur.p = +(r.p||0);
+    }
+  });
+  return out;
+}
+
+/* =====================================================================
+   页面框架
+   ===================================================================== */
+const PAGES = [
+  {id:"overview", name:"行情总览"},
+  {id:"contracts", name:"合约行情"},
+  {id:"variety",  name:"品种多合约"},
+  {id:"weighted", name:"品种加权合约"},
+  {id:"kline",    name:"K线分析"},
+  {id:"lhb",      name:"持仓龙虎榜"},
+  {id:"news",     name:"品种资讯"},
+];
+let PAGE = "overview";
+const RENDER = {};
+function renderHeader(){
+  const m = $("#hmeta"); m.innerHTML = "";
+  m.append(el("span",{class:"pill live", html:`数据时间 <b>${META.generatedAt||"--"}</b>`}));
+  m.append(el("span",{class:"pill", html:`交易日 <b>${META.tradeDate||"--"}</b>`}));
+  const t = $("#tabs"); t.innerHTML = "";
+  PAGES.forEach(p => t.append(el("button",{class:PAGE===p.id?"on":"", onclick:()=>switchPage(p.id), html:p.name})));
+}
+function switchPage(id){
+  const h = "#" + id + (PAGE_HASH[id] ? ("/" + PAGE_HASH[id]()) : "");
+  if(location.hash === h){ applyHash(); }
+  else location.hash = h;              // 触发 hashchange -> applyHash（产生历史记录，浏览器返回键可用）
+}
+/* 各页面的 hash 参数序列化（页面内切换选择时用 replaceState，不产生额外历史记录） */
+const PAGE_HASH = {
+  variety:  () => encodeURIComponent(VY.v || ""),
+  weighted: () => encodeURIComponent(WT.detail || ""),
+  kline:    () => [KL.code, KL.period].map(encodeURIComponent).join("/"),
+  lhb:      () => [LHB.code || "", LHB.date || ""].map(encodeURIComponent).join("/"),
+};
+function syncHash(){
+  const h = "#" + PAGE + (PAGE_HASH[PAGE] ? ("/" + PAGE_HASH[PAGE]()) : "");
+  if(location.hash !== h) history.replaceState(null, "", h);
+}
+function applyHash(){
+  // 按位置切分（保留空段，如 #lhb//2026-09-30 表示 code 缺省、date 有值）
+  const seg = (location.hash || "").replace(/^#/, "").split("/");
+  const id = seg.shift() || "overview";
+  PAGE = PAGES.some(p => p.id === id) ? id : "overview";
+  const p1 = seg[0] ? decodeURIComponent(seg[0]) : null;
+  const p2 = seg[1] ? decodeURIComponent(seg[1]) : null;
+  if(PAGE === "variety"  && p1 && VAR_BY[p1]) VY.v = p1;
+  if(PAGE === "weighted" && p1) WT.detail = WEIGHTED[p1] ? p1 : null;
+  if(PAGE === "kline"){ if(p1) KL.code = p1; if(p2 && PERIODS.some(x => x.k === p2)) KL.period = p2; }
+  if(PAGE === "lhb"){ if(p1) LHB.code = p1; if(p2) LHB.date = p2; }
+  renderHeader();
+  window.scrollTo({top:0,behavior:"smooth"});
+  const f = RENDER[PAGE]; if(f) f();
+}
+function setView(...nodes){ const v = $("#view"); v.innerHTML = ""; nodes.forEach(n => n && v.append(n)); }
+
+/* ---------------- 通用可排序表格 ---------------- */
+function dataTable(opts){
+  const st = {sortKey:opts.sortKey||null, sortDir:opts.sortDir||-1, page:1, size:opts.size||0, kw:""};
+  let rows = (opts.rows||[]).slice();
+  const box = el("div",{class:"card"});
+  const hd = el("div",{class:"hd2"}, el("h3",{},opts.title||""));
+  if(opts.desc) hd.append(el("div",{class:"desc",html:opts.desc}));
+  box.append(hd);
+  const ctl = el("div",{class:"bd"});
+  const tw = el("div",{class:"tw"+(opts.short?" short":"")});
+  const tb = el("table"), thead = el("thead"), tbody = el("tbody");
+  const trh = el("tr");
+  opts.columns.forEach(c => {
+    const th = el("th",{class:c.left?"l":"", title:c.tip||""});
+    th.append(document.createTextNode(c.label));
+    if(c.sortable !== false){
+      th.append(el("span",{class:"ar", html:"↕"}));
+      th.onclick = ()=>{ st.sortDir = (st.sortKey === c.key) ? -st.sortDir : -1; st.sortKey = c.key; paint(); };
+    }
+    th._key = c.key; trh.append(th);
+  });
+  thead.append(trh); tb.append(thead); tb.append(tbody); tw.append(tb);
+  box.append(ctl); box.append(tw);
+  const pager = el("div",{class:"pager"}); box.append(pager);
+  function filtered(){
+    let r = rows;
+    if(st.kw){
+      if(opts.searchFn) r = r.filter(x => opts.searchFn(x, st.kw));
+      else if(opts.searchKeys){
+        const k = st.kw.toLowerCase();
+        r = r.filter(x => opts.searchKeys.some(s => String(x[s]===undefined?"":x[s]).toLowerCase().includes(k)));
+      }
+    }
+    if(st.sortKey){
+      const col = opts.columns.find(c => c.key === st.sortKey);
+      r = r.slice().sort((a,b)=>{
+        let x = a[st.sortKey], y = b[st.sortKey];
+        if(col && col.sortVal){ x = col.sortVal(a); y = col.sortVal(b); }
+        const xE = (x===null||x===undefined||x===""), yE = (y===null||y===undefined||y==="");
+        if(xE && yE) return 0;
+        if(xE) return 1;              // 空值始终排在末尾
+        if(yE) return -1;
+        if(typeof x === "number" && typeof y === "number") return (x-y) * st.sortDir;
+        return String(x).localeCompare(String(y), "zh-CN") * st.sortDir;
+      });
+    }
+    return r;
+  }
+  function paint(){
+    const all = filtered(), total = all.length;
+    const data = st.size ? all.slice((st.page-1)*st.size, st.page*st.size) : all;
+    tbody.innerHTML = "";
+    if(!data.length){
+      const cols = opts.columns.length;
+      tbody.append(el("tr",{},el("td",{colspan:cols},el("div",{class:"empty"},opts.emptyText||"暂无数据"))));
+    } else {
+      data.forEach(r => {
+        const tr = el("tr");
+        opts.columns.forEach(c => {
+          const td = el("td",{class:c.left?"l":""});
+          if(c.cls) td.className = (c.left?"l ":"") + c.cls(r);
+          const v = c.render ? c.render(r) : r[c.key];
+          if(v && v.nodeType) td.append(v);
+          else { td.innerHTML = (v===null||v===undefined||v==="") ? "--" : v; }
+          tr.append(td);
+        });
+        tbody.append(tr);
+      });
+    }
+    Array.from(thead.querySelectorAll("th")).forEach(th => {
+      const isSorted = th._key === st.sortKey;
+      th.classList.toggle("sorted", isSorted);
+      const ar = th.querySelector(".ar");
+      if(ar) ar.textContent = isSorted ? (st.sortDir < 0 ? "▼" : "▲") : "↕";
+    });
+    pager.innerHTML = "";
+    if(st.size && total > st.size){
+      const pages = Math.max(1, Math.ceil(total/st.size));
+      st.page = Math.max(1, Math.min(st.page, pages));
+      pager.append(el("span",{},`共 ${num(total)} 条　第 ${st.page} / ${pages} 页　`));
+      const mk = (t, f, primary) => { const b = el("button",{class:"btn"+(primary?" primary":""), onclick:()=>{f();paint();}},t); pager.append(b); };
+      mk("首页", ()=>st.page=1); mk("上一页", ()=>st.page=Math.max(1,st.page-1));
+      mk("下一页", ()=>st.page=Math.min(pages,st.page+1)); mk("末页", ()=>st.page=pages);
+    } else if(total){
+      pager.append(el("span",{},`共 ${num(total)} 条`));
+    }
+  }
+  const handle = {box, state:st, refresh:paint, getRows:()=>filtered(), setRows(r){ rows = r.slice(); st.page = 1; paint(); }};
+  if(typeof opts.controls === "function") opts.controls(handle, ctl);
+  else if(opts.controls) ctl.append(opts.controls);
+  if(!ctl.childNodes.length) ctl.remove(); else ctl.className = "bd";
+  paint();
+  return handle;
+}
+
+/* =====================================================================
+   1. 行情总览
+   ===================================================================== */
+const OV = {cat:"real", exch:"ALL", sector:"ALL", rows:[]};
+RENDER.overview = function(){
+  const wrap = el("div");
+  wrap.append(el("div",{class:"notice info", html:
+    "<b>数据源：</b>东方财富期货行情接口（<code>futsseapi.eastmoney.com</code>）实时快照，"
+    + "快照时间 <b>"+(META.generatedAt||"--")+"</b>，交易日 <b>"+(META.tradeDate||"--")+"</b>；"
+    + "覆盖 6 大交易所（上期所 / 大商所 / 郑商所 / 广期所 / 上期能源 / 中金所）全部挂牌合约。<br>"
+    + "K 线数据来自新浪财经期货 K 线接口（<code>stock2.finance.sina.com.cn</code>），在「K线分析」页按需联网获取全量历史；"
+    + "龙虎榜来自东方财富数据中心（<code>datacenter-web.eastmoney.com</code>）。"
+    + "本页所有数值均为公开接口真实数据，未作任何模拟、插值或补全。"}));
+  const cbar = el("div",{class:"chips"});
+  ["real","main","main_link","sub_main_link","month_link","continuous","index","night","day_only","all"]
+    .forEach(k => {
+      const c = CATS[k]; if(!c) return;
+      cbar.append(el("span",{class:"chip"+(OV.cat===k?" on":""), title:c.desc||"",
+        onclick:()=>{ OV.cat = k; RENDER.overview(); },
+        html:`${c.label}<b> ${num(c.items.length)}</b>`}));
+    });
+  wrap.append(el("div",{class:"card"},
+    el("div",{class:"hd2"}, el("h3",{},"① 合约分类"),
+      el("div",{class:"desc",html:(CATS[OV.cat]||{}).desc || ""})),
+    el("div",{class:"bd"}, cbar)));
+
+  const bar2 = el("div",{class:"bar"});
+  bar2.append(el("span",{class:"mini"},"期交所"));
+  bar2.append(el("span",{class:"chip"+(OV.exch==="ALL"?" on":""), onclick:()=>{OV.exch="ALL";RENDER.overview();}, html:"全部"}));
+  Object.keys(CATS._byExch||{}).forEach(k => {
+    const o = CATS._byExch[k];
+    bar2.append(el("span",{class:"chip"+(OV.exch===k?" on":""), onclick:()=>{OV.exch=k;RENDER.overview();},
+      html:`${o.label}<b> ${num(o.items.length)}</b>`}));
+  });
+  bar2.append(el("span",{class:"sep"}));
+  bar2.append(el("span",{class:"mini"},"品种类型"));
+  bar2.append(el("span",{class:"chip"+(OV.sector==="ALL"?" on":""), onclick:()=>{OV.sector="ALL";RENDER.overview();}, html:"全部"}));
+  Object.keys(CATS._bySector||{}).forEach(k => {
+    const o = CATS._bySector[k];
+    bar2.append(el("span",{class:"chip"+(OV.sector===k?" on":""), onclick:()=>{OV.sector=k;RENDER.overview();},
+      html:`${o.label}<b> ${num(o.items.length)}</b>`}));
+  });
+  wrap.append(el("div",{class:"card"},
+    el("div",{class:"hd2"}, el("h3",{},"② 交叉筛选"), el("div",{class:"desc",html:"分类与交易所 / 品种类型可叠加"})),
+    el("div",{class:"bd"}, bar2)));
+
+  const set = new Set(((CATS[OV.cat]||{}).items||[]).map(x => x.toUpperCase()));
+  let rows = CONTRACTS.filter(c => set.has(c.codeUpper));
+  if(OV.exch !== "ALL") rows = rows.filter(c => c.exch === OV.exch);
+  if(OV.sector !== "ALL") rows = rows.filter(c => c.sector === OV.sector);
+  OV.rows = rows;
+
+  const upN = rows.filter(c => c.zdf > 0).length, dnN = rows.filter(c => c.zdf < 0).length;
+  const tv = rows.reduce((s,c)=>s+(c.vol||0),0), tc = rows.reduce((s,c)=>s+(c.ccl||0),0);
+  const kpi = el("div",{class:"grid g4"});
+  kpi.append(el("div",{class:"kpi"}, el("div",{class:"k",html:"筛选后合约数"}),
+    el("div",{class:"v",html:num(rows.length)}), el("div",{class:"x",html:(CATS[OV.cat]||{}).label||""})));
+  kpi.append(el("div",{class:"kpi"}, el("div",{class:"k",html:"上涨 / 下跌"}),
+    el("div",{class:"v"}, el("span",{class:"up",html:num(upN)}), el("span",{style:"color:#ccd5e2",html:" / "}),
+      el("span",{class:"down",html:num(dnN)})),
+    el("div",{class:"x",html:"其中平盘 "+num(rows.length-upN-dnN)+" 个"})));
+  kpi.append(el("div",{class:"kpi"}, el("div",{class:"k",html:"成交量合计(手)"}),
+    el("div",{class:"v",html:big(tv)}), el("div",{class:"x",html:"所选范围全部合约加总"})));
+  kpi.append(el("div",{class:"kpi"}, el("div",{class:"k",html:"持仓量合计(手)"}),
+    el("div",{class:"v",html:big(tc)}), el("div",{class:"x",html:"所选范围全部合约加总"})));
+  wrap.append(kpi);
+
+  const dt = dataTable({
+    title:"实时行情快照", desc:`共 <b>${num(rows.length)}</b> 个合约　·　东方财富期货行情，快照时间 ${META.generatedAt||"--"}`,
+    columns:ovColumns(), rows, searchKeys:["code","name","variety","varietyName","exchName"],
+    size:60, sortKey:"vol", sortDir:-1,
+    controls:(t, ctl)=>{
+      const b = el("div",{class:"bar"});
+      const q = el("input",{type:"search",placeholder:"搜索：品种代码 / 合约代码 / 品种名称 / 合约名称（全库）", style:"min-width:320px"});
+      q.oninput = ()=>{
+        const k = q.value.trim();
+        if(k){
+          // 全库搜索：越过分类筛选，直接在全部合约中匹配四类关键词（含中文别名）
+          t.setRows(filterContracts(CONTRACTS, k));
+        } else {
+          t.setRows(rows);
+        }
+      };
+      b.append(q);
+      b.append(el("button",{class:"btn primary", onclick:()=>exportSheet(t.getRows(), ovColumns(),
+        `期货行情快照_${(CATS[OV.cat]||{}).label||"全部"}_${todayStr()}.xlsx`, "行情快照"),
+        html:"导出 Excel（当前结果）"}));
+      b.append(el("span",{class:"mini",html:"搜索为全库匹配（不受上方分类限制）；点击表头排序；导出为当前表格全部结果。"}));
+      ctl.append(b);
+    },
+    emptyText:"当前筛选条件下没有合约"
+  });
+  wrap.append(dt.box);
+  setView(wrap);
+};
+function ovColumns(){
+  return [
+    {key:"code", label:"合约代码", left:true, w:12},
+    {key:"name", label:"合约名称", left:true, w:18, render:r =>
+      el("span",{}, el("span",{class:"name"},r.name), el("span",{class:"tag k-"+r.kind}, KIND_LABEL[r.kind]||""))},
+    {key:"varietyName", label:"品种", left:true, w:11},
+    {key:"exchName", label:"交易所", left:true, w:14},
+    {key:"sector", label:"品种类型", left:true, w:10},
+    {key:"night", label:"夜盘", left:true, w:7, render:r=>r.night?"有":"无", sortVal:r=>r.night?1:0},
+    {key:"p", label:"最新价", w:10, render:r=>num2(r.p)},
+    {key:"zde", label:"涨跌", w:9, cls:r=>cls(r.zde), render:r=>sign(r.zde,2)},
+    {key:"zdf", label:"涨跌幅%", w:9, cls:r=>cls(r.zdf), render:r=>r.zdf==null?"--":sign(r.zdf,2)+"%" },
+    {key:"o", label:"今开", w:9, render:r=>num2(r.o)},
+    {key:"h", label:"最高", w:9, render:r=>num2(r.h)},
+    {key:"l", label:"最低", w:9, render:r=>num2(r.l)},
+    {key:"zjsj", label:"昨结算", w:9, render:r=>num2(r.zjsj)},
+    {key:"vol", label:"成交量", w:10, render:r=>num(r.vol)},
+    {key:"ccl", label:"持仓量", w:10, render:r=>num(r.ccl)},
+    {key:"rz", label:"日增仓", w:10, cls:r=>cls(r.rz), render:r=>num(r.rz)},
+    {key:"cje", label:"成交额", w:10, render:r=>big(r.cje)},
+    {key:"month", label:"交割月", w:8},
+    {key:"sina", label:"新浪K线代码", left:true, w:13, render:r=>r.sina||'<span class="mini">无</span>'},
+  ];
+}
+
+/* =====================================================================
+   2. 合约行情明细
+   ===================================================================== */
+const CT = {exch:"ALL", sector:"ALL", kind:"real", night:"ALL"};
+RENDER.contracts = function(){
+  const wrap = el("div");
+  wrap.append(el("div",{class:"notice info", html:
+    "<b>数据源：</b>东方财富期货行情接口（<code>futsseapi.eastmoney.com/list/{市场}</code>），"
+    + "快照时间 <b>"+(META.generatedAt||"--")+"</b>。逐合约给出市场码 <code>TRADE_MARKET_CODE</code>，"
+    + "便于与东方财富 / 交易所口径对照。<br>"
+    + "本页为<b>生成时刻快照</b>，如需最新行情请重新运行 <code>采集期货数据.py</code> 后刷新页面。"}));
+  const bar = el("div",{class:"bar"});
+  const mk = (label, key, opts) => {
+    const s = el("select");
+    opts.forEach(([v,t]) => s.append(el("option",{value:v, selected:(CT[key]===v?"":null)}, t)));
+    s.onchange = ()=>{ CT[key] = s.value; RENDER.contracts(); };
+    bar.append(el("span",{class:"mini"},label), s);
+  };
+  mk("交易所", "exch", [["ALL","全部"]].concat(Object.keys(CATS._byExch||{})
+    .map(k => [k, CATS._byExch[k].label + " (" + CATS._byExch[k].items.length + ")"])));
+  mk("品种类型", "sector", [["ALL","全部"]].concat(Object.keys(CATS._bySector||{}).map(k => [k, CATS._bySector[k].label])));
+  mk("合约属性", "kind", [["real","真实合约"],["ALL","全部（含主连/连续/加权）"],["main_link","主连"],
+    ["sub_main_link","次主连"],["month_link","月连续"],["continuous","连续"],["index","加权/指数"]]);
+  mk("夜盘", "night", [["ALL","全部"],["1","有夜盘"],["0","无夜盘"]]);
+  wrap.append(el("div",{class:"card"},
+    el("div",{class:"hd2"}, el("h3",{},"筛选条件"),
+      el("div",{class:"desc",html:"全部合约行情明细　·　东方财富期货行情快照"})),
+    el("div",{class:"bd"}, bar)));
+
+  let rows = CONTRACTS.slice();
+  if(CT.exch   !== "ALL") rows = rows.filter(c => c.exch === CT.exch);
+  if(CT.sector !== "ALL") rows = rows.filter(c => c.sector === CT.sector);
+  if(CT.kind   !== "ALL") rows = rows.filter(c => c.kind === CT.kind);
+  if(CT.night  !== "ALL") rows = rows.filter(c => (CT.night === "1") === !!c.night);
+
+  const cols = ovColumns().concat([{key:"tradeMarketCode", label:"东财市场码", left:true, w:12, render:r=>r.tradeMarketCode||"--"}]);
+  const dt = dataTable({
+    title:"合约行情明细", desc:`当前筛选命中 <b>${num(rows.length)}</b> 条`,
+    columns:cols, rows, searchFn:(x,kw)=>filterContracts([x],kw).length>0,
+    size:80, sortKey:"ccl", sortDir:-1,
+    controls:(t, ctl)=>{
+      const b = el("div",{class:"bar"});
+      const q = el("input",{type:"search",placeholder:"搜索：品种代码 / 合约代码 / 品种名称 / 合约名称（支持别名，如：黄金）", style:"min-width:340px"});
+      q.oninput = ()=>{ t.state.kw = q.value.trim(); t.refresh(); };
+      q._filter = true;
+      b.append(q);
+      const doExport = ()=>{
+        const fr = t.getRows();                       // 当前筛选（含搜索词）命中的数据
+        const kw = (t.state.kw || "").trim();
+        const kindLabel = {real:"真实合约",ALL:"全部合约",main_link:"主连",sub_main_link:"次主连",
+          month_link:"月连续",continuous:"连续",index:"加权指数"}[CT.kind] || CT.kind;
+        const exchLabel = CT.exch === "ALL" ? "" : ((CATS._byExch[CT.exch]||{}).label || CT.exch);
+        // 文件名与导出内容相匹配：有关键词用关键词，否则用当前筛选条件组合
+        const fname = kw ? `合约行情_${kw}_${todayStr()}.xlsx`
+          : `合约行情_${[exchLabel, CT.sector==="ALL"?"":CT.sector, kindLabel, CT.night==="ALL"?"":(CT.night==="1"?"有夜盘":"无夜盘")]
+              .filter(Boolean).join("_")}_${todayStr()}.xlsx`;
+        exportSheet(fr, cols, fname, "合约行情");
+      };
+      b.append(el("button",{class:"btn", onclick:doExport, html:"导出当前结果 Excel"}));
+      b.append(el("span",{class:"mini",html:"导出内容与文件名自动跟随当前搜索 / 筛选条件；清空搜索即导出全部。"}));
+      ctl.append(b);
+    },
+    emptyText:"没有符合条件的合约"
+  });
+  wrap.append(dt.box);
+  setView(wrap);
+};
+
+/* =====================================================================
+   3. 品种多合约
+   ===================================================================== */
+const VY = {v:null};
+RENDER.variety = function(){
+  const wrap = el("div");
+  wrap.append(el("div",{class:"notice info", html:
+    "<b>数据源：</b>东方财富期货行情接口（<code>futsseapi.eastmoney.com</code>）· 合约快照时间 <b>"
+    +(META.generatedAt||"--")+"</b>。<br>"
+    + "本页汇总同一品种下的<b>全部合约代码</b>（真实月份合约 + 主连 / 次主连 / 月连续 / 连续 / 加权指数），"
+    + "并给出该品种的<b>自算加权价</b>（由真实合约按持仓量加权，口径见「品种加权合约」页）；"
+    + "K 线与龙虎榜为对应来源的实时数据。<br>"
+    + "<b>注意：</b>表中「加权/指数」标签的行为东方财富官方编制的品种指数，仅作对照参考；"
+    + "本站一律以<b>真实合约按持仓量加权自算</b>的口径为准（见「品种加权合约」页与K线页的「品种加权」合约）。"}));
+  if(!VY.v){ VY.v = (VARIETIES.find(v => v.mainContract) || VARIETIES[0] || {}).variety; syncHash(); }
+  const bar = el("div",{class:"bar"});
+  const s = el("select",{style:"min-width:300px"});
+  VARIETIES.slice().sort((a,b)=>a.variety.localeCompare(b.variety)).forEach(v =>
+    s.append(el("option",{value:v.variety, selected:(VY.v===v.variety?"":null)},
+      `${v.variety} ${v.name}　·　${v.exchName}　·　${v.contractCount}个真实合约`)));
+  s.value = VY.v;
+  s.onchange = ()=>{ VY.v = s.value; syncHash(); RENDER.variety(); };
+  // 跳转输入：datalist 给出「代码 + 名称」候选，回车 / 失焦选中后才跳转（不在每次按键时重渲染，避免丢焦点）
+  const dl = el("datalist",{id:"vyDatalist"});
+  VARIETIES.slice().sort((a,b)=>a.variety.localeCompare(b.variety)).forEach(v =>
+    dl.append(el("option",{value:`${v.variety}　${v.name}`}, v.exchName)));
+  const q = el("input",{type:"search",list:"vyDatalist",placeholder:"输入品种代码或名称后回车，如：RB / 螺纹钢", style:"width:250px"});
+  const jump = ()=>{
+    const raw = q.value.trim().replace(/　/g," ").replace(/\s+/g," ");
+    if(!raw) return;
+    const up = raw.toUpperCase();
+    // ① 品种代码前缀精确（RB、RB2610 的品种部分）
+    let hit = VARIETIES.find(v => v.variety === up);
+    // ② 「代码 名称」组合（datalist 选中项）
+    if(!hit) hit = VARIETIES.find(v => raw === (v.variety + " " + v.name) || raw.startsWith(v.variety + " "));
+    // ③ 名称包含
+    if(!hit) hit = VARIETIES.find(v => v.name.includes(raw));
+    // ③' 中文别名（如「黄金」-> AU）
+    if(!hit){
+      const av = SEARCH_ALIAS[raw] || SEARCH_ALIAS[raw.toUpperCase()];
+      if(av && VAR_BY[av]) hit = VAR_BY[av];
+    }
+    // ④ 输入的是具体合约代码（如 rb2610 / RB2610）→ 解析其品种
+    if(!hit){
+      const c = CONTRACTS.find(x => x.codeUpper === up);
+      if(c && VAR_BY[c.variety]) hit = VAR_BY[c.variety];
+    }
+    if(hit){ VY.v = hit.variety; q.value = ""; syncHash(); RENDER.variety(); }
+    else toast("未找到品种：" + raw + "（可输入品种代码如 RB，或名称如 螺纹钢，或合约代码如 RB2610）","warn");
+  };
+  q.addEventListener("keydown", e => { if(e.key === "Enter") jump(); });
+  q.addEventListener("change", ()=>{ /* datalist 选中且失焦时 */ if(q.value.trim()) jump(); });
+  bar.append(el("span",{class:"mini"},"选择品种"), s, q, dl);
+  wrap.append(el("div",{class:"card"},
+    el("div",{class:"hd2"}, el("h3",{},"品种多合约行情"),
+      el("div",{class:"desc",html:"同一品种下全部合约代码（含主连 / 次主连 / 月连续 / 连续 / 加权指数）"})),
+    el("div",{class:"bd"}, bar)));
+
+  const v = VAR_BY[VY.v];
+  if(!v){ setView(wrap); return; }
+  const nl = NEWS[v.variety] || {};
+  const w = WEIGHTED[v.variety];
+  const kpi = el("div",{class:"grid g4"});
+  kpi.append(el("div",{class:"kpi"}, el("div",{class:"k",html:"品种"}),
+    el("div",{class:"v",html:v.variety + " " + v.name}),
+    el("div",{class:"x",html:v.exchName + "　·　" + v.sector + "　·　" + (v.night?"有夜盘":"无夜盘")})));
+  kpi.append(el("div",{class:"kpi"}, el("div",{class:"k",html:"主力合约（按持仓量）"}),
+    el("div",{class:"v",style:"font-size:15px",html:v.mainContractName || "--"}),
+    el("div",{class:"x",html:"代码 " + (v.mainContract||"--") + "　主连 " + (v.mainLinkName||"--")})));
+  kpi.append(el("div",{class:"kpi"}, el("div",{class:"k",html:"真实合约 / 全部代码"}),
+    el("div",{class:"v",html:v.contractCount + " / " + (v.contractCount + v.linkCount)}),
+    el("div",{class:"x",html:"成交合计 " + big(v.vol) + " 手　持仓合计 " + big(v.ccl) + " 手"})));
+  kpi.append(el("div",{class:"kpi"}, el("div",{class:"k",html:"自算品种加权价"}),
+    el("div",{class:"v",html: w ? num2(w.p) : "--"}),
+    el("div",{class:"x"}, w ? el("span",{class:cls(w.zdf), html:sign(w.zdf,2)+"%　"}) : "数据不足",
+      w ? `（${w.contractCount} 个真实合约按持仓量加权）` : "")));
+  wrap.append(kpi);
+
+  const rows = CONTRACTS.filter(c => c.variety === v.variety).sort((a,b)=>(b.ccl||0)-(a.ccl||0));
+  const cols = ovColumns();
+  const dt = dataTable({
+    title:v.name + "　全部合约", desc:`共 <b>${rows.length}</b> 个代码　·　真实合约 ${v.contractCount} 个`,
+    columns:cols, rows, searchKeys:["code","name"], size:0, sortKey:"ccl", sortDir:-1,
+    controls:(t, ctl)=>{
+      const b = el("div",{class:"bar"});
+      b.append(el("button",{class:"btn primary", onclick:()=>exportSheet(rows, cols,
+        `${v.name}${v.variety}_多合约行情_${todayStr()}.xlsx`, v.name.slice(0,28)), html:"导出 Excel"}));
+      b.append(el("button",{class:"btn", onclick:()=>{ KL.code = v.sinaLink || v.sinaMain || KL.code; switchPage("kline"); },
+        html:"查看该品种K线"}));
+      b.append(el("button",{class:"btn", onclick:()=>{ LHB.code = (LHB_INDEX[v.lhbCode] ? v.lhbCode : LHB.code); switchPage("lhb"); },
+        html:"查看龙虎榜"}));
+      if(nl.emNews) b.append(el("a",{class:"btn",href:nl.emNews,target:"_blank",html:"东财·"+v.name+"资讯 ↗"}));
+      if(nl.sinaNews) b.append(el("a",{class:"btn",href:nl.sinaNews,target:"_blank",html:"新浪·"+v.name+"资讯 ↗"}));
+      ctl.append(b);
+    },
+    emptyText:"该品种无合约数据"
+  });
+  wrap.append(dt.box);
+  setView(wrap);
+};
+
+/* =====================================================================
+   4. 品种加权合约
+   ===================================================================== */
+const WT = {detail:null};
+RENDER.weighted = function(){
+  const wrap = el("div");
+  wrap.append(el("div",{class:"notice info", html:
+    "<b>数据源：</b>东方财富期货行情接口（<code>futsseapi.eastmoney.com</code>）的合约最新价 / 持仓量 / 成交量，"
+    + "快照时间 <b>"+(META.generatedAt||"--")+"</b>。<br>"
+    + "<b>加权口径：</b>严格剔除主连 / 次主连 / 当月·下月·下季·隔季连续 / 加权指数 / 月均 等全部衍生代码，"
+    + "只使用该品种<b>真实月份合约</b>，以各自<b>持仓量</b>为权重计算："
+    + "加权价 = Σ(合约最新价 × 合约持仓量) ÷ Σ(合约持仓量)。昨结算、今开、最高、最低同法加权；"
+    + "成交量与持仓量为该品种全部真实合约的合计。"}));
+  const rows = Object.keys(WEIGHTED).map(k => WEIGHTED[k]).sort((a,b)=>(b.ccl||0)-(a.ccl||0));
+  const cols = [
+    {key:"variety", label:"品种代码", left:true, w:10},
+    {key:"name", label:"加权合约", left:true, w:14, render:r=>el("span",{class:"name"},r.name)},
+    {key:"exchName", label:"交易所", left:true, w:14},
+    {key:"sector", label:"品种类型", left:true, w:10},
+    {key:"night", label:"夜盘", left:true, w:7, render:r=>r.night?"有":"无", sortVal:r=>r.night?1:0},
+    {key:"p", label:"加权最新", w:11, render:r=>num2(r.p)},
+    {key:"zjsj", label:"加权昨结", w:11, render:r=>num2(r.zjsj)},
+    {key:"zde", label:"涨跌", w:10, cls:r=>cls(r.zde), render:r=>sign(r.zde,2)},
+    {key:"zdf", label:"涨跌幅%", w:10, cls:r=>cls(r.zdf), render:r=>sign(r.zdf,2)+"%"},
+    {key:"o", label:"加权今开", w:11, render:r=>num2(r.o)},
+    {key:"h", label:"加权最高", w:11, render:r=>num2(r.h)},
+    {key:"l", label:"加权最低", w:11, render:r=>num2(r.l)},
+    {key:"ccl", label:"持仓合计", w:12, render:r=>num(r.ccl)},
+    {key:"vol", label:"成交合计", w:12, render:r=>num(r.vol)},
+    {key:"contractCount", label:"参与合约数", w:11},
+    {key:"__d", label:"成员明细", left:true, w:10, sortable:false, render:r =>
+      el("button",{class:"btn", onclick:()=>{ WT.detail = (WT.detail === r.variety) ? null : r.variety; syncHash(); RENDER.weighted(); },
+        html:(WT.detail === r.variety ? "收起" : "展开")})},
+  ];
+  const dt = dataTable({
+    title:"品种加权合约行情", desc:`共 <b>${rows.length}</b> 个品种加权合约　·　由全部真实合约按持仓量加权自算`,
+    columns:cols, rows, searchKeys:["variety","name","exchName","sector"], size:0, sortKey:"ccl", sortDir:-1,
+    controls:(t, ctl)=>{
+      const b = el("div",{class:"bar"});
+      const q = el("input",{type:"search",placeholder:"搜索品种…"});
+      q.oninput = ()=>{ t.state.kw = q.value.trim(); t.refresh(); };
+      b.append(q);
+      b.append(el("button",{class:"btn primary", onclick:()=>{
+        const members = [];
+        rows.forEach(r => r.memberDetail.forEach(m => members.push(Object.assign(
+          {variety:r.variety, wname:r.name}, m))));
+        exportMulti([
+          {name:"加权合约行情", rows, header:cols.filter(c => c.key !== "__d")},
+          {name:"加权成员明细", rows:members, header:[
+            {key:"variety",label:"品种",w:8},{key:"wname",label:"加权合约",w:14},
+            {key:"code",label:"成员合约",w:12},{key:"name",label:"合约名称",w:16},
+            {key:"p",label:"最新价",w:10},{key:"ccl",label:"持仓量",w:12},
+            {key:"vol",label:"成交量",w:12},{key:"weight",label:"权重%",w:10}]}
+        ], `期货品种加权合约_${todayStr()}.xlsx`);
+      }, html:"导出 Excel（含成员明细）"}));
+      b.append(el("span",{class:"mini",html:"在「K线分析」页选择带「品种加权（自算）」标签的合约，可查看加权K线（分时~年K，含导出）。"}));
+      b.append(el("button",{class:"btn", onclick:()=>{
+        const first = KL.code && KL.code.startsWith("WK:") ? KL.code.slice(3)
+          : (rows[0] ? rows[0].variety : Object.keys(WEIGHTED)[0]);
+        KL.code = "WK:" + (WT.detail || first); KL.period = "day";
+        switchPage("kline");
+      }, html:"查看加权K线"}));
+      ctl.append(b);
+    }
+  });
+  wrap.append(dt.box);
+  if(WT.detail && WEIGHTED[WT.detail]){
+    const w = WEIGHTED[WT.detail];
+    const mc = [
+      {key:"code", label:"成员合约", left:true, w:14},
+      {key:"name", label:"合约名称", left:true, w:16},
+      {key:"p", label:"最新价", w:11, render:r=>num2(r.p)},
+      {key:"ccl", label:"持仓量", w:12, render:r=>num(r.ccl)},
+      {key:"vol", label:"成交量", w:12, render:r=>num(r.vol)},
+      {key:"weight", label:"权重%", w:11, render:r=>Number(r.weight).toFixed(3)+"%"},
+    ];
+    const dt2 = dataTable({
+      title:w.name + "　加权成员明细", desc:w.rule + "　共 <b>" + w.memberDetail.length + "</b> 个真实合约",
+      columns:mc, rows:w.memberDetail.slice(), searchKeys:["code","name"],
+      size:0, sortKey:"weight", sortDir:-1,
+      controls:(t, ctl)=>{
+        const b = el("div",{class:"bar"});
+        b.append(el("button",{class:"btn", onclick:()=>exportSheet(w.memberDetail, mc,
+          `${w.name}_成员明细_${todayStr()}.xlsx`, w.name.slice(0,28)), html:"导出成员明细"}));
+        ctl.append(b);
+      }
+    });
+    wrap.append(dt2.box);
+  }
+  setView(wrap);
+};
+
+/* =====================================================================
+   5. K线分析
+   ===================================================================== */
+const KL = {code:"RB0", period:"day", chart:null, rows:[], busy:false};
+/* 预抓核心日K：新浪代码 -> 品种（用于离线兜底） */
+const CORE_BY_SYMBOL = {};
+Object.keys(KLINE_CORE).forEach(v => {
+  const s = (KLINE_CORE[v]||{}).symbol;
+  if(s) CORE_BY_SYMBOL[String(s).toUpperCase()] = v;
+});
+/* 品种加权日K索引（采集端用全部真实合约含过期合约按持仓量加权自算） */
+const WK_INDEX = D.weightedKlineIndex || {};
+
+/* ---------------- K线页：当前行情（东方财富实时行情） ---------------- */
+const KLQ = {seq:0, timer:null};
+function nowStr(){
+  const d = new Date();
+  return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0")
+       + ":" + String(d.getSeconds()).padStart(2,"0");
+}
+/* 当前选中代码 -> 东财行情目标 */
+function klQuoteTarget(){
+  const code = String(KL.code||"");
+  if(code.startsWith("WK:")) return {kind:"wk", v:code.slice(3)};
+  const up = code.toUpperCase();
+  const rec = CONTRACTS.find(c => String(c.sina||"").toUpperCase() === up);
+  if(rec) return {kind:"contract", rec};
+  return null;
+}
+/* 加权合约实时行情：成员合约按持仓量加权自算 */
+async function wkQuoteNow(v){
+  const mem = wkMembers(v);
+  if(!mem.length) return null;
+  const mkts = Array.from(new Set(mem.map(m => m.market)));
+  const lists = await Promise.all(mkts.map(m => emMarketList(m).catch(()=>[])));
+  const idx = {};
+  mkts.forEach((m,i) => (lists[i]||[]).forEach(x => { idx[m + "|" + String(x.dm||"").toUpperCase()] = x; }));
+  let sw=0, sp=0, so=0, sh=0, sl=0, sz=0, sv=0, sc=0, sr=0, scje=0, n=0;
+  mem.forEach(m => {
+    const q = idx[m.market + "|" + String(m.code).toUpperCase()];
+    if(!q || !(+q.p > 0)) return;
+    const w = +q.ccl || +m.ccl || 0;
+    if(!(w > 0)) return;
+    sw += w; sp += (+q.p)*w; so += (+q.o||0)*w; sh += (+q.h||0)*w; sl += (+q.l||0)*w;
+    sz += (+q.zjsj||0)*w; sv += (+q.vol||0); sc += (+q.ccl||0); sr += (+q.rz||0); scje += (+q.cje||0);
+    n++;
+  });
+  if(!n || sw <= 0) return null;
+  const p = sp/sw, zjsj = sz/sw, hi = sh/sw, lo = sl/sw;
+  return {p, zjsj, o:so/sw, h:hi, l:lo, zde:p-zjsj,
+          zdf: zjsj ? (p/zjsj-1)*100 : 0, vol:sv, ccl:sc, rz:sr, cje:scje,
+          zf: zjsj ? (hi-lo)/zjsj*100 : null,
+          members:n, wsum:sw};
+}
+function qCell(k, v, c, x, pri){
+  return el("div",{class:"qcell"+(pri?" pri":"")},
+    el("span",{class:"qk",html:k}),
+    el("span",{class:"qv "+(c||""),html:(v===undefined||v===null||v==="")?"--":v}),
+    x ? el("span",{class:"qx",html:x}) : null);
+}
+/* 实时行情单元格 */
+function qtCells(q){
+  return [
+    qCell("最新价", num2(q.p), cls(q.zde), "涨跌 " + sign(q.zde,2), true),
+    qCell("涨跌幅", sign(q.zdf,2) + "%", cls(q.zdf)),
+    qCell("涨跌", sign(q.zde,2), cls(q.zde)),
+    qCell("今开", num2(q.o), cls(q.o - q.zjsj)),
+    qCell("最高", num2(q.h), cls(q.h - q.zjsj)),
+    qCell("最低", num2(q.l), cls(q.l - q.zjsj)),
+    qCell("昨结算", num2(q.zjsj)),
+    qCell("成交量(手)", num(q.vol)),
+    qCell("持仓量(手)", num(q.ccl)),
+    qCell("日增仓(手)", sign(q.rz,0), cls(q.rz)),
+    qCell("成交额", big(q.cje)),
+    qCell("振幅", (q.zf===undefined||q.zf===null) ? "--" : num2(q.zf)+"%")
+  ];
+}
+/* 无实时行情时，用已加载的 K 线最后一根兜底 */
+function klLastCells(){
+  const r = (KL.rows && KL.rows.length) ? KL.rows[KL.rows.length-1] : null;
+  if(!r) return [qCell("最新行情","加载中…","","正在获取实时行情")];
+  const prev = KL.rows.length > 1 ? KL.rows[KL.rows.length-2] : null;
+  const chg = prev ? (r.c - prev.c) : null;
+  return [
+    qCell("收盘(K线)", num2(r.c), chg===null?null:cls(chg), null, true),
+    qCell("开盘", num2(r.o), cls(r.o - (prev?prev.c:r.o))),
+    qCell("最高", num2(r.h), cls(r.h - (prev?prev.c:r.h))),
+    qCell("最低", num2(r.l), cls(r.l - (prev?prev.c:r.l))),
+    qCell("较前值", chg===null?"--":sign(chg,2), chg===null?null:cls(chg)),
+    qCell("成交量(手)", num(r.v)),
+    qCell("持仓量(手)", num(r.p)),
+    qCell("数据时间", r.d)
+  ];
+}
+async function renderKlQuote(opt){
+  const box = $("#klquote"); if(!box) return;
+  const o = opt || {};
+  const mine = ++KLQ.seq;
+  const tgt = klQuoteTarget();
+  const refreshBtn = el("button",{class:"btn", onclick:()=>{
+    Object.keys(QT_ONE).forEach(k=>delete QT_ONE[k]);
+    Object.keys(QT_MKT).forEach(k=>delete QT_MKT[k]);
+    renderKlQuote({silent:true});
+  }, html:"刷新行情"});
+  const paint = (cells, sub, foot) => {
+    if(mine !== KLQ.seq) return;
+    box.innerHTML = "";
+    box.append(el("div",{class:"qwrap"},
+      el("div",{class:"qhead"},
+        el("h3",{},"当前行情"),
+        sub ? el("div",{class:"qname",html:sub}) : null,
+        el("span",{class:"sp"}),
+        el("span",{class:"mini",html:foot||""}),
+        refreshBtn),
+      el("div",{class:"qgrid"}, ...cells)));
+  };
+  if(!o.silent || !box.firstChild){
+    paint([qCell("最新行情","加载中…","","正在获取实时行情…")],
+      tgt ? "东方财富期货行情" : "", "数据源：东方财富 futsseapi.eastmoney.com");
+  }
+  /* A. 品种加权（自算） */
+  if(tgt && tgt.kind === "wk"){
+    const v = tgt.v, vn = (VAR_BY[v]||{}).name || v;
+    try{
+      const q = await wkQuoteNow(v);
+      if(!q){
+        paint(klLastCells(), `${v} ${vn} · 品种加权（自算）`,
+          "成员合约实时行情暂不可用，以下为 K 线最后一根数据");
+        return;
+      }
+      paint(qtCells(q),
+        `${v} ${vn} · 品种加权（自算）　最新价由 <b>${q.members}</b> 个真实合约按持仓量加权`,
+        `口径：加权价 = Σ(最新价 × 持仓量) ÷ Σ(持仓量)，成交量为成员合计；非东财指数　·　更新 ${nowStr()}　·　每 2 分钟自动更新`);
+    }catch(e){
+      paint(klLastCells(), `${v} ${vn} · 品种加权（自算）`,
+        `实时行情获取失败（${e.message||e}），以下为 K 线最后一根数据`);
+    }
+    return;
+  }
+  /* B. 具体合约 / 主连 */
+  if(!tgt){
+    paint(klLastCells(), KL.code,
+      "该代码为新浪专有代码，东财行情接口无对应合约，以下为 K 线最后一根数据");
+    return;
+  }
+  const rec = tgt.rec;
+  const sub = `${rec.code}　${rec.name}　·　${rec.kindLabel||""}　·　${rec.exchName||""}`;
+  try{
+    const q = await emQuoteOne(rec.market, rec.code);
+    if(!q){
+      paint(klLastCells(), sub,
+        "东财行情接口无该合约的实时数据（可能已摘牌 / 停止交易），以下为 K 线最后一根数据");
+      return;
+    }
+    paint(qtCells(q), sub,
+      `数据源：东方财富实时行情 <code>futsseapi.eastmoney.com/static/${rec.market}_${rec.code}</code>`
+      + `　·　更新 ${nowStr()}　·　每 2 分钟自动更新`);
+  }catch(e){
+    paint(klLastCells(), sub,
+      `实时行情获取失败（${e.message||e}）：可能网络不可达或被拦截，以下为 K 线最后一根数据`);
+  }
+}
+function klQuoteAutoRefresh(){
+  if(KLQ.timer) clearInterval(KLQ.timer);
+  KLQ.timer = setInterval(()=>{
+    if(PAGE !== "kline" || document.hidden) return;
+    if(KLQ.seq && $("#klquote")) renderKlQuote({silent:true});
+  }, 120000);
+}
+
+function klineTargets(){
+  const map = new Map();
+  const add = (code, label) => { if(code && !map.has(code)) map.set(code, label); };
+  // 品种主连
+  VARIETIES.filter(v => v.sinaLink).forEach(v => add(v.sinaLink, `${v.variety} ${v.name} · 主连（${v.sinaLink}）`));
+  // 真实合约
+  CONTRACTS.filter(c => c.kind === "real" && c.sinaUsable).forEach(c =>
+    add(c.sina, `${c.name}（${c.code}）· 真实合约`));
+  // 品种加权合约（自算，非东财指数）
+  Object.keys(WK_INDEX).forEach(v => {
+    const vv = VAR_BY[v];
+    if(vv) add("WK:" + v, `${v} ${vv.name} · 品种加权（自算，含过期合约）`);
+  });
+  return Array.from(map, ([code, label]) => ({code, label}));
+}
+RENDER.kline = function(){
+  const wrap = el("div");
+  const targets = klineTargets();
+  if(!targets.some(t => t.code === KL.code) && targets.length){ KL.code = targets[0].code; syncHash(); }
+  const bar = el("div",{class:"bar"});
+  const s = el("select",{style:"min-width:330px"});
+  targets.forEach(t => s.append(el("option",{value:t.code, selected:(KL.code===t.code?"":null)}, t.label)));
+  s.value = KL.code;
+  s.onchange = ()=>{ KL.code = s.value; syncHash(); loadKline(); };
+  const q = el("input",{type:"search",placeholder:"筛选合约（代码/名称）", style:"width:200px"});
+  q.oninput = ()=>{ const raw = q.value.trim(); if(!raw) return; const up = raw.toUpperCase();
+    const hit = targets.find(t => t.code.includes(up) || t.label.toUpperCase().includes(up));
+    if(hit){ KL.code = hit.code; s.value = hit.code; syncHash(); loadKline(); } };
+  bar.append(el("span",{class:"mini"},"合约"), s, q, el("span",{class:"sep"}));
+  PERIODS.forEach(p => bar.append(el("span",{class:"chip"+(KL.period===p.k?" on":""), title:"查看 "+p.n,
+    onclick:()=>{ KL.period = p.k; syncHash(); RENDER.kline(); }, html:p.n})));
+  const bar2 = el("div",{class:"bar"});
+  bar2.append(el("button",{class:"btn primary", onclick:loadKline, html:"重新加载"}));
+  bar2.append(el("button",{class:"btn", onclick:()=>{
+    if(!KL.rows.length){ toast("暂无可导出的K线数据","warn"); return; }
+    const wk = KL.code.startsWith("WK:");
+    const label = wk ? (KL.code.slice(3) + "_品种加权") : KL.code;
+    exportSheet(KL.rows, [{key:"d",label:"时间",w:20},{key:"o",label:"开盘",w:10},{key:"h",label:"最高",w:10},
+      {key:"l",label:"最低",w:10},{key:"c",label:"收盘",w:10},{key:"v",label:"成交量",w:12},{key:"p",label:"持仓量",w:12}],
+      `${label}_${KL.period}_K线_${todayStr()}.xlsx`, "K线");
+  }, html:"导出当前K线 Excel"}));
+  bar2.append(el("span",{class:"mini",html:"K线数据通过新浪财经接口<b>按需拉取全部可用历史</b>，不截断；周/月/年K由日K全量聚合。"}));
+  wrap.append(el("div",{class:"card"},
+    el("div",{class:"hd2"}, el("h3",{},"K线数据（全量）"),
+      el("div",{class:"desc",html:"K线数据源：新浪财经期货行情接口　|　当前行情数据源：东方财富期货行情接口（实时）"})),
+    el("div",{class:"bd"}, bar, bar2)));
+  wrap.append(el("div",{id:"klquote"}));
+  wrap.append(el("div",{id:"klinfo"}));
+  wrap.append(el("div",{class:"card"}, el("div",{class:"bd"},
+    el("div",{class:"chartbox"}, el("div",{id:"klchart", class:"chart"})))));
+  setView(wrap);
+  renderKlQuote();
+  klQuoteAutoRefresh();
+  loadKline();
+};
+async function loadKline(){
+  const info = $("#klinfo"); if(!info) return;
+  const pname = (PERIODS.find(p => p.k === KL.period) || {}).n;
+  syncHash();
+  if(KL.code.startsWith("WK:")){ await loadWeightedKline(pname); return; }
+  info.innerHTML = "";
+  info.append(el("div",{class:"notice info"}, el("span",{class:"spin"}),
+    el("span",{html:`正在从新浪财经拉取 <b>${KL.code}</b> 的 ${pname} 全量数据…`})));
+  let raw = null, srcNote = "";
+  try{
+    // 周/月/年K：新浪不提供该周期，改为拉取日K全量后由前端聚合
+    const fetchPeriod = (KL.period==="week"||KL.period==="month"||KL.period==="year") ? "day" : KL.period;
+    raw = await sinaJSONP(KL.code, fetchPeriod);
+  }catch(e){
+    // 离线兜底：本地服务模式下读取预抓的核心日K快照
+    if(IS_HTTP){
+      const v = CORE_BY_SYMBOL[String(KL.code).toUpperCase()];
+      if(v){
+        try{
+          const j = await loadLocal("data/kline_core/" + v + ".json");
+          if(j.rows && j.rows.length){ raw = j.rows; srcNote = "（网络不可达，已回退到本地预抓的日K快照）"; }
+        }catch(e2){ /* 忽略 */ }
+      }
+    }
+    if(!raw){
+      KL.rows = [];
+      renderKlQuote({silent:true});
+      info.innerHTML = "";
+      info.append(el("div",{class:"notice err", html:
+        `<b>数据获取失败：</b>${e.message||e}<br>`
+        + `可能原因：① 当前网络无法访问 <code>stock2.finance.sina.com.cn</code>（新浪期货K线接口）；`
+        + `② 该合约的新浪K线代码不可用（可换用「主连」代码重试）；③ 浏览器/插件拦截了跨域脚本。<br>`
+        + `建议：切换到主连合约、或更换周期后重试。`}));
+      return;
+    }
+  }
+  if(!raw || !raw.length){
+    info.innerHTML = "";
+    info.append(el("div",{class:"notice warn", html:
+      `新浪财经接口正常响应，但 <b>${KL.code}</b> 的 ${pname} <b>无可用数据</b>。<br>`
+      + `常见原因：该周期数据新浪未提供（如分时只保留最近数个交易日）、或该合约代码在新浪无对应行情。请换用其它合约或周期。`}));
+    if(KL.chart){ KL.chart.dispose(); KL.chart = null; }
+    KL.rows = [];
+    renderKlQuote({silent:true});
+    return;
+  }
+  let rows = raw.map(r => ({d:r.d, o:+r.o, h:+r.h, l:+r.l, c:+r.c, v:+(r.v||0), p:+(r.p||0)}))
+                .filter(r => !isNaN(r.c) && isFinite(r.c));
+  let note = "";
+  if(KL.period === "week" || KL.period === "month" || KL.period === "year"){
+    const n0 = rows.length;
+    rows = aggregate(rows, KL.period);
+    note = `（由 ${num(n0)} 根日K聚合为 ${num(rows.length)} 根）`;
+  }
+  KL.rows = rows;
+  info.innerHTML = "";
+  const f = rows[0], l = rows[rows.length-1];
+  const chg = (l.c - f.o) / f.o * 100;
+  info.append(el("div",{class:"notice ok", html:
+    `<b>${KL.code}</b>　${pname}　共 <b>${num(rows.length)}</b> 根K线 ${note}　`
+    + `区间 <b>${f.d}</b> ~ <b>${l.d}</b>　最新收盘 <b>${num2(l.c)}</b>　`
+    + `区间涨跌 <b class="${cls(chg)}">${sign(chg,2)}%</b>　`
+    + (srcNote ? `<span class="mini">${srcNote}</span>　` : "")
+    + `<span class="mini">（导出 Excel 含全部 ${num(rows.length)} 行）</span>`
+    + `<br><span class="mini">数据源：新浪财经期货 K 线接口 <code>stock2.finance.sina.com.cn</code>`
+    + `（<code>InnerFuturesNewService</code>，全量历史；周 / 月 / 年 K 由日K聚合）</span>`}));
+  drawKline(rows, pname);
+}
+/* ---------------- 品种加权K线（自算，非东财指数） ---------------- */
+function wkMembers(v){
+  return CONTRACTS.filter(c => c.variety === v && c.kind === "real" && c.sina && (c.ccl||0) > 0)
+    .sort((a,b)=>(b.ccl||0)-(a.ccl||0)).slice(0, 40);
+}
+function wkFinish(info, rows, pname, srcNote, extra){
+  const vn = (VAR_BY[KL.code.slice(3)]||{}).name || KL.code.slice(3);
+  const f = rows[0], l = rows[rows.length-1];
+  const chg = (l.c - f.o) / f.o * 100;
+  info.innerHTML = "";
+  info.append(el("div",{class:"notice ok", html:
+    `<b>${KL.code.slice(3)} ${vn}（品种加权·自算）</b>　${pname}　共 <b>${num(rows.length)}</b> 根K线 ${extra||""}　`
+    + `区间 <b>${f.d}</b> ~ <b>${l.d}</b>　最新收盘 <b>${num2(l.c)}</b>　`
+    + `区间涨跌 <b class="${cls(chg)}">${sign(chg,2)}%</b>　`
+    + `<span class="mini">（导出 Excel 含全部 ${num(rows.length)} 行）</span>`
+    + `<br><span class="mini">${srcNote}</span>`}));
+  KL.rows = rows;
+  drawKline(rows, KL.code.slice(3) + " " + vn + " · 品种加权（自算）");
+}
+function wkAggregate(rows, mode, n0){
+  if(mode === "week" || mode === "month" || mode === "year"){
+    const n = rows.length;
+    const out = aggregate(rows, mode);
+    return {rows:out, note:`（由 ${num(n)} 根日K聚合为 ${num(out.length)} 根${n0?`，日K由 ${num(n0)} 个真实合约加权合成`:""}）`};
+  }
+  return {rows, note:""};
+}
+async function loadWeightedKline(pname){
+  const info = $("#klinfo"); if(!info) return;
+  const v = KL.code.slice(3);
+  const vn = (VAR_BY[v]||{}).name || v;
+  const DAILY = ["day","week","month","year"].includes(KL.period);
+
+  /* ---- A. 日/周/月/年：优先读采集端快照（含已过期合约、逐日持仓量加权） ---- */
+  if(DAILY && IS_HTTP){
+    info.innerHTML = "";
+    info.append(el("div",{class:"notice info"}, el("span",{class:"spin"}),
+      el("span",{html:`正在读取 <b>${v} ${vn}</b> 的品种加权日K快照（全部真实合约按持仓量加权自算）…`})));
+    try{
+      const j = await loadLocal("data/weighted_kline/" + v + ".json");
+      const raw = (j.rows||[]).map(a => ({d:a[0], o:+a[1], h:+a[2], l:+a[3], c:+a[4], v:+(a[5]||0), p:+(a[6]||0)}))
+        .filter(r => !isNaN(r.c) && isFinite(r.c));
+      if(raw.length){
+        const {rows, note} = wkAggregate(raw, KL.period, j.contracts);
+        wkFinish(info, rows, pname,
+          `数据源：采集端以新浪财经日K（<code>stock2.finance.sina.com.cn</code>）抓取该品种全部真实合约（含近期过期合约，本次 ${j.contracts} 个）`
+          + `，逐日按<b>持仓量</b>加权合成（加权价=Σ价×持仓÷Σ持仓）；非东财指数。快照生成于 ${META.generatedAt||"--"}，运行「更新数据.bat」可刷新。`, note);
+        return;
+      }
+    }catch(e){ /* 快照缺失 -> 实时降级 */ }
+  }
+
+  /* ---- B. 实时计算：当前挂牌真实合约（分时/分钟级；或无快照时的日K降级） ---- */
+  const mem = wkMembers(v);
+  if(!mem.length){
+    info.innerHTML = "";
+    info.append(el("div",{class:"notice err", html:
+      `<b>${v} ${vn}</b> 没有可用于自算加权的真实合约成员（需要合约有新浪代码且持仓量 &gt; 0）。`}));
+    return;
+  }
+  const isLiveDaily = DAILY;   // 日K降级到实时（说明历史深度受限）
+  info.innerHTML = "";
+  info.append(el("div",{class:"notice info"}, el("span",{class:"spin"}),
+    el("span",{html:`正在并发拉取 <b>${v} ${vn}</b> 的 <b>${mem.length}</b> 个成员合约 ${pname} 数据，按持仓量加权自算…`})));
+  const results = await Promise.all(mem.map(m =>
+    sinaJSONP(m.sina, DAILY ? "day" : KL.period).then(r => ({m, rows:r||[]})).catch(()=>({m, rows:[]}))));
+  const ok = results.filter(r => r.rows.length);
+  if(!ok.length){
+    info.innerHTML = "";
+    info.append(el("div",{class:"notice err", html:
+      `<b>加权K线计算失败：</b>${v} ${vn} 的 ${mem.length} 个成员合约 ${pname} 数据均拉取失败`
+      + `（新浪接口 <code>stock2.finance.sina.com.cn</code> 不可达或被拦截）。请检查网络后重试。`}));
+    return;
+  }
+  const map = {};
+  ok.forEach(({m, rows}) => rows.forEach(r => {
+    const k = r.d; if(!k) return;
+    const w = DAILY ? (+m.ccl || 1) : (+m.ccl || 1);
+    const o = +r.o, h = +r.h, l = +r.l, c = +r.c, vv = +(r.v||0);
+    if(isNaN(c) || !isFinite(c)) return;
+    const cur = map[k] || (map[k] = {d:k, so:0, sh:0, sl:0, sc:0, w:0, v:0});
+    cur.so += o*w; cur.sh += h*w; cur.sl += l*w; cur.sc += c*w; cur.w += w; cur.v += vv;
+  }));
+  const keys = Object.keys(map).sort();
+  let raw = keys.map(k => { const t = map[k];
+    return {d:k, o:+(t.so/t.w).toFixed(3), h:+(t.sh/t.w).toFixed(3),
+            l:+(t.sl/t.w).toFixed(3), c:+(t.sc/t.w).toFixed(3), v:Math.round(t.v), p:Math.round(t.w)}; });
+  if(!raw.length){
+    info.innerHTML = "";
+    info.append(el("div",{class:"notice warn", html:
+      `接口正常返回，但 <b>${v} ${vn}</b> 的 ${pname} <b>无可用数据</b>（成员合约数据为空或时间戳无法对齐）。`}));
+    return;
+  }
+  const {rows, note} = DAILY ? wkAggregate(raw, KL.period, ok.length)
+                             : {rows:raw, note:`（由 ${ok.length} 个成员合约按当前持仓量加权合成）`};
+  const srcNote = DAILY
+    ? (IS_HTTP
+        ? `实时自算（快照缺失时降级）：当前挂牌真实合约 ${ok.length} 个按<b>当前持仓量</b>加权合成（近似口径，未含已过期合约）。运行「更新数据.bat」生成完整快照（含过期合约、逐日持仓量加权）。`
+        : `实时自算：当前挂牌真实合约 ${ok.length} 个按<b>当前持仓量</b>加权合成（近似口径，未含已过期合约）。`
+          + `完整口径请双击「启动本地服务.bat」后访问——将自动读取含过期合约的加权日K快照。`)
+    : `实时自算：新浪财经分时/分钟K线接口，成员合约 ${ok.length} 个按<b>当前持仓量</b>加权（加权价=Σ价×持仓÷Σ持仓，成交量为合计）；非东财指数。`;
+  wkFinish(info, rows, pname, srcNote, note);
+}
+function drawKline(rows, title){
+  const dom = $("#klchart"); if(!dom) return;
+  if(KL.chart){ KL.chart.dispose(); KL.chart = null; }
+  KL.chart = echarts.init(dom);
+  const cats = rows.map(r => r.d);
+  const ohlc = rows.map(r => [r.o, r.c, r.l, r.h]);
+  const vols = rows.map(r => ({value:r.v, itemStyle:{color: r.c >= r.o ? "#f0b4b0" : "#b2e0c8"}}));
+  const ma = n => rows.map((_, i) => {
+    if(i < n-1) return null;
+    let s2 = 0; for(let j = i-n+1; j <= i; j++) s2 += rows[j].c;
+    return +(s2/n).toFixed(3);
+  });
+  const zs = rows.length > 300 ? 100 - 300/rows.length*100 : 0;
+  KL.chart.setOption({
+    animation:false,
+    title:{text:title, left:8, top:2, textStyle:{fontSize:12.5,fontWeight:600,color:"#1b2432"}},
+    tooltip:{trigger:"axis", axisPointer:{type:"cross"},
+      backgroundColor:"rgba(255,255,255,.97)", borderColor:"#dfe6ef",
+      textStyle:{color:"#1b2432",fontSize:12},
+      formatter:ps => {
+        const p = ps.find(x => x.seriesName === "K线"); if(!p) return "";
+        const r = rows[p.dataIndex];
+        return `<b>${r.d}</b><br/>开 ${r.o.toFixed(2)}　高 ${r.h.toFixed(2)}<br/>低 ${r.l.toFixed(2)}　收 ${r.c.toFixed(2)}`
+          + `<br/>量 ${num(r.v)}　持仓 ${num(r.p)}`;
+      }},
+    legend:{right:12, top:2, data:["MA5","MA10","MA20","MA60"], textStyle:{fontSize:11,color:"#5b6b80"}},
+    grid:[{left:62, right:22, top:34, height:"56%"},{left:62, right:22, top:"70%", height:"18%"}],
+    xAxis:[
+      {type:"category", data:cats, gridIndex:0, boundaryGap:true, axisLine:{lineStyle:{color:"#dfe6ef"}},
+       axisTick:{show:false}, axisLabel:{color:"#8b9aad",fontSize:10}},
+      {type:"category", data:cats, gridIndex:1, boundaryGap:true, axisLine:{lineStyle:{color:"#dfe6ef"}},
+       axisTick:{show:false}, axisLabel:{show:false}}
+    ],
+    yAxis:[
+      {scale:true, gridIndex:0, splitLine:{lineStyle:{color:"#eef2f7"}}, axisLine:{show:false},
+       axisLabel:{color:"#8b9aad",fontSize:10}},
+      {gridIndex:1, splitNumber:2, splitLine:{show:false}, axisLine:{show:false},
+       axisLabel:{color:"#8b9aad",fontSize:10, formatter:v=>big(v)}}
+    ],
+    dataZoom:[
+      {type:"inside", xAxisIndex:[0,1], start:zs, end:100},
+      {type:"slider", xAxisIndex:[0,1], bottom:6, height:16, start:zs, end:100,
+       borderColor:"#dfe6ef", fillerColor:"rgba(37,99,235,.10)",
+       handleStyle:{color:"#2563eb"}, textStyle:{color:"#8b9aad",fontSize:10}}
+    ],
+    series:[
+      {name:"K线", type:"candlestick", data:ohlc, xAxisIndex:0, yAxisIndex:0,
+       itemStyle:{color:"#d8342b", color0:"#0a9d5c", borderColor:"#d8342b", borderColor0:"#0a9d5c"}},
+      {name:"MA5",  type:"line", data:ma(5),  smooth:true, showSymbol:false, lineStyle:{width:1,color:"#e6a23c"}},
+      {name:"MA10", type:"line", data:ma(10), smooth:true, showSymbol:false, lineStyle:{width:1,color:"#2563eb"}},
+      {name:"MA20", type:"line", data:ma(20), smooth:true, showSymbol:false, lineStyle:{width:1,color:"#9b59b6"}},
+      {name:"MA60", type:"line", data:ma(60), smooth:true, showSymbol:false, lineStyle:{width:1,color:"#16a085"}},
+      {name:"成交量", type:"bar", data:vols, xAxisIndex:1, yAxisIndex:1}
+    ]
+  }, true);
+  renderKlQuote({silent:true});
+}
+
+/* =====================================================================
+   6. 持仓龙虎榜
+   ===================================================================== */
+const LHB = {code:null, date:META.tradeDate||"", tab:"rank"};
+const LHB_TABS = [
+  {k:"rank", n:"成交持仓", desc:"合约会员成交持仓龙虎榜：成交量、多头持仓、空头持仓及其增减与排名"},
+  {k:"total", n:"本日合计", desc:"当日成交量与多空持仓合计、总量增减"},
+  {k:"structure", n:"持仓结构", desc:"会员多空持仓排名与净持仓结构"},
+  {k:"build", n:"建仓过程", desc:"会员近期成交量与多空持仓的变化过程（按日期降序）"},
+  {k:"avgPpal", n:"持仓均价", desc:"会员多空持仓均价、最新持仓均价与当日结算价"},
+  {k:"profit", n:"盈亏分析", desc:"会员多头 / 空头浮动盈亏与累计盈亏"},
+];
+function lhbOptions(){
+  /* 全部真实合约（不止主力/快照合约），按持仓量降序——活跃合约排在最前 */
+  return CONTRACTS.filter(c => c.kind === "real")
+    .map(c => ({code:toLhbCode(c), name:c.name, variety:c.variety, exch:c.exch, ccl:c.ccl||0}))
+    .sort((a,b)=> b.ccl - a.ccl || a.code.localeCompare(b.code));
+}
+RENDER.lhb = function(){
+  const wrap = el("div");
+  wrap.append(el("div",{class:"notice info", html:
+    "<b>数据源：</b>东方财富数据中心 · 期货龙虎榜（<code>RPT_FUTU_DAILYPOSITION</code> 会员成交持仓 / "
+    + "<code>RPT_FUTU_AVGPPAL</code> 持仓均价与盈亏）。内容为交易所每日公布的会员成交持仓排名，"
+    + "仅覆盖<b>合约</b>维度且交易所只披露活跃合约，因此并非每个品种每日都有数据。"}));
+  const cov = Object.keys(LHB_INDEX).length;
+  wrap.append(el("div",{class:cov? "notice ok":"notice warn", html: cov
+    ? `本地已预抓 <b>${cov}</b> 个活跃合约的龙虎榜快照（交易日 <b>${META.tradeDate||"--"}</b>，命中时秒开）；`
+      + `下拉列表为<b>全部真实合约</b>（${num(CONTRACTS.filter(c=>c.kind==="real").length)} 个），任意合约均可联网实时查询。`
+    : `下拉列表为<b>全部真实合约</b>（${num(CONTRACTS.filter(c=>c.kind==="real").length)} 个），页面将联网实时获取。`}));
+  const arr = lhbOptions();
+  if(!LHB.code){
+    const first = arr.find(x => x.variety === "RB") || arr[0];
+    LHB.code = first ? first.code : "RB2701";
+  }
+  syncHash();   // 修正缺省 code 时的 hash
+  const bar = el("div",{class:"bar"});
+  const sel = el("select",{style:"min-width:300px"});
+  arr.forEach(c => sel.append(el("option",{value:c.code, selected:(LHB.code===c.code?"":null)},
+    `${c.name}（${c.code}）· ${c.exch} · 持仓${num(c.ccl)}`)));
+  sel.value = LHB.code;
+  sel.onchange = ()=>{ LHB.code = sel.value; syncHash(); loadLhb(); };
+  const dInp = el("input",{type:"date", value:(LHB.date||META.tradeDate||todayStr())});
+  dInp.onchange = ()=>{ LHB.date = dInp.value; syncHash(); loadLhb(); };
+  const q = el("input",{type:"search",placeholder:"合约代码 / 名称 / 品种", style:"width:170px"});
+  q.oninput = ()=>{ const raw = q.value.trim(); if(!raw) return; const up = raw.toUpperCase();
+    const hit = arr.find(c => c.code.toUpperCase().includes(up) || String(c.name).includes(raw)
+      || c.variety.toUpperCase() === up);
+    if(hit){ LHB.code = hit.code; sel.value = hit.code; syncHash(); loadLhb(); } };
+  bar.append(el("span",{class:"mini"},"合约"), sel, q,
+    el("span",{class:"mini"},"交易日"), dInp,
+    el("button",{class:"btn primary", onclick:loadLhb, html:"查询"}));
+  const bar2 = el("div",{class:"chips"});
+  LHB_TABS.forEach(t => bar2.append(el("span",{class:"chip"+(LHB.tab===t.k?" on":""), title:t.desc,
+    onclick:()=>{ LHB.tab = t.k; syncHash(); RENDER.lhb(); }, html:t.n})));
+  wrap.append(el("div",{class:"card"},
+    el("div",{class:"hd2"}, el("h3",{},"期货持仓龙虎榜"),
+      el("div",{class:"desc",html:(LHB_TABS.find(t=>t.k===LHB.tab)||{}).desc||""})),
+    el("div",{class:"bd"}, bar, bar2)));
+  const out = el("div",{id:"lhbout"});
+  wrap.append(out);
+  setView(wrap);
+  loadLhb();
+};
+function lhbParams(tab){
+  const code = LHB.code;
+  const d = LHB.date || META.tradeDate;
+  switch(tab){
+    case "rank":      return {reportName:"RPT_FUTU_DAILYPOSITION", filter:`(SECURITY_CODE="${code}")(TRADE_DATE='${d}')(TYPE="0")`, pageSize:100, pageNumber:1, sortColumns:"VOLUMERANK", sortTypes:"1"};
+    case "total":     return {reportName:"RPT_FUTU_DAILYPOSITION", filter:`(SECURITY_CODE="${code}")(TRADE_DATE='${d}')(TYPE="1")`, pageSize:50, pageNumber:1, sortColumns:"VOLUMERANK", sortTypes:"1"};
+    case "structure": return {reportName:"RPT_FUTU_DAILYPOSITION", filter:`(SECURITY_CODE="${code}")(TRADE_DATE='${d}')`, pageSize:200, pageNumber:1, sortColumns:"VOLUMERANK", sortTypes:"1"};
+    case "build":     return {reportName:"RPT_FUTU_DAILYPOSITION", filter:`(SECURITY_CODE="${code}")`, pageSize:300, pageNumber:1, sortColumns:"TRADE_DATE,VOLUMERANK", sortTypes:"-1,1"};
+    default:          return {reportName:"RPT_FUTU_AVGPPAL", filter:`(SECURITY_CODE="${code}")(TRADE_DATE='${d}')`, pageSize:200, pageNumber:1, sortColumns:"LONG_POSITION", sortTypes:"-1"};
+  }
+}
+async function getLhbTab(tab){
+  // 本地快照优先（仅在 http 环境可用）
+  if(IS_HTTP){
+    try{
+      const j = await loadLocal("data/lhb/" + LHB.code + ".json");
+      const key = (tab === "profit") ? "avgPpal" : tab;
+      if(j[key] && j[key].length && (!LHB.date || j.tradeDate === LHB.date))
+        return {rows:j[key], from:"本地快照"};
+    }catch(e){ /* 忽略，转实时 */ }
+  }
+  const r = await dcJSONP(lhbParams(tab));
+  return {rows:(r && r.result && r.result.data) || [], from:"东方财富实时"};
+}
+async function loadLhb(){
+  const out = $("#lhbout"); if(!out) return;
+  const tname = (LHB_TABS.find(t => t.k === LHB.tab)||{}).n;
+  out.innerHTML = "";
+  out.append(el("div",{class:"notice info"}, el("span",{class:"spin"}),
+    el("span",{html:`正在获取 <b>${LHB.code}</b>　${LHB.date||META.tradeDate} 的「${tname}」数据…`})));
+  let res;
+  try{ res = await getLhbTab(LHB.tab); }
+  catch(e){
+    out.innerHTML = "";
+    out.append(el("div",{class:"notice err", html:
+      `<b>龙虎榜数据获取失败：</b>${e.message||e}<br>`
+      + `接口：<code>datacenter-web.eastmoney.com</code>。可能原因：网络不可达、被浏览器拦截、或参数不被接受。<br>`
+      + `建议：更换合约（推荐主力合约，如螺纹钢 RB2701）、更换交易日（非交易日无数据）后重试。`}));
+    return;
+  }
+  out.innerHTML = "";
+  const data = res.rows;
+  if(!data.length){
+    out.append(el("div",{class:"notice warn", html:
+      `接口正常返回，但 <b>${LHB.code}</b> 在 <b>${LHB.date||META.tradeDate}</b> 的「${tname}」<b>没有数据</b>。<br>`
+      + `常见原因：① 该合约当日不是交易所龙虎榜披露对象（交易所通常只披露成交/持仓排名前 20 位的活跃合约）；`
+      + `② 所选日期为非交易日或数据尚未发布；③ 该合约已摘牌或当日无成交。<br>`
+      + `可尝试：换用持仓量更大的活跃合约、或更换交易日（「建仓过程」页签不含日期过滤，可查近期是否有任何披露）。`}));
+    return;
+  }
+  out.append(el("div",{class:"notice ok", html:
+    `共 <b>${num(data.length)}</b> 条记录　·　来源：<b>${res.from}</b>　·　表格支持排序，可一键导出 Excel。`}));
+  const {cols} = lhbTable(LHB.tab, data);
+  const dt = dataTable({
+    title:`${LHB.code} · ${tname}`,
+    desc:`交易日 ${data[0].TRADE_DATE ? String(data[0].TRADE_DATE).slice(0,10) : (LHB.date||"")}　共 <b>${num(data.length)}</b> 条`,
+    columns:cols, rows:data, searchKeys:["MEMBER_NAME_ABBR","ORG_CODE"],
+    size:0, sortKey:null, sortDir:-1,
+    controls:(t, ctl)=>{
+      const b = el("div",{class:"bar"});
+      const q = el("input",{type:"search",placeholder:"搜索会员名称 / 代码…"});
+      q.oninput = ()=>{ t.state.kw = q.value.trim(); t.refresh(); };
+      b.append(q);
+      b.append(el("button",{class:"btn", onclick:()=>exportSheet(data, cols,
+        `${LHB.code}_${tname}_${LHB.date||META.tradeDate}.xlsx`, tname), html:"导出本表 Excel"}));
+      b.append(el("button",{class:"btn primary", onclick:(e)=>exportAllLhb(e.target), html:"导出该合约全部 6 类数据"}));
+      ctl.append(b);
+    }
+  });
+  out.append(dt.box);
+}
+function lhbTable(tab, data){
+  const P = (k, l, w, fn, d) => ({key:k, label:l, w:w,
+    render: fn || (r => (r[k]===null||r[k]===undefined||r[k]==="") ? "--" : num(r[k], d||0))});
+  const rankCol = {key:"__r", label:"名次", w:7, sortable:true, render:r=>r.__r};
+  const member = {key:"MEMBER_NAME_ABBR", label:"会员简称", left:true, w:14};
+  const org = {key:"ORG_CODE", label:"会员代码", left:true, w:11};
+  const money = (k,l,w) => ({key:k, label:l, w:w, cls:r=>cls(r[k]),
+    render:r=>{ const v = r[k]; return (v===null||v===undefined||v===""||isNaN(v)) ? "--" : big(v); }});
+  let rows = data.map((r,i)=>Object.assign({}, r, {__r:i+1}));
+  if(tab === "build"){
+    return {rows, cols:[
+      {key:"TRADE_DATE", label:"交易日期", left:true, w:12, render:r=>String(r.TRADE_DATE||"").slice(0,10)},
+      member, org,
+      P("VOLUME","成交量",11), P("VOLUMERANK","成交量排名",11),
+      P("LONG_POSITION","多头持仓",11), P("LP_CHANGE","多头增减",11),
+      P("SHORT_POSITION","空头持仓",11), P("SP_CHANGE","空头增减",11),
+      P("NET_LONG_POSITION","净多持仓",11), P("NET_SHORT_POSITION","净空持仓",11)]};
+  }
+  if(tab === "avgPpal"){
+    return {rows, cols:[rankCol, member, org,
+      P("LONG_POSITION","多头持仓",11), P("SHORT_POSITION","空头持仓",11),
+      P("NET_LONG_POSITION","净多持仓",11), P("NET_SHORT_POSITION","净空持仓",11),
+      {key:"LP_AVERAGE_PRICE", label:"多头持仓均价", w:13, render:r=>num2(r.LP_AVERAGE_PRICE)},
+      {key:"SP_AVERAGE_PRICE", label:"空头持仓均价", w:13, render:r=>num2(r.SP_AVERAGE_PRICE)},
+      {key:"LP_AVRNEW_PRICE",  label:"多头最新均价", w:13, render:r=>num2(r.LP_AVRNEW_PRICE)},
+      {key:"SP_AVRNEW_PRICE",  label:"空头最新均价", w:13, render:r=>num2(r.SP_AVRNEW_PRICE)},
+      {key:"SETTLE_PRICE",     label:"当日结算价", w:12, render:r=>num2(r.SETTLE_PRICE)}]};
+  }
+  if(tab === "profit"){
+    return {rows, cols:[rankCol, member, org,
+      P("LONG_POSITION","多头持仓",11), P("SHORT_POSITION","空头持仓",11),
+      P("NET_LONG_POSITION","净多持仓",11), P("NET_SHORT_POSITION","净空持仓",11),
+      money("LP_FLUCTUATE_PAL","多头浮动盈亏",14), money("SP_FLUCTUATE_PAL","空头浮动盈亏",14),
+      money("FLUCTUATE_PAL","合计浮动盈亏",14), money("LP_ACCUM_PAL","多头累计盈亏",14),
+      money("SP_ACCUM_PAL","空头累计盈亏",14), money("ACCUM_PAL","合计累计盈亏",14)]};
+  }
+  return {rows, cols:[rankCol, member, org,
+    P("VOLUME","成交量",11), P("VOLUME_CHANGE","成交量增减",12), P("VOLUMERANK","成交量排名",11),
+    P("LONG_POSITION","多头持仓",11), P("LP_CHANGE","多头增减",11), P("LPRANK","多头排名",9),
+    P("SHORT_POSITION","空头持仓",11), P("SP_CHANGE","空头增减",11), P("SPRANK","空头排名",9),
+    P("NET_LONG_POSITION","净多持仓",11), P("NET_SHORT_POSITION","净空持仓",11)]};
+}
+async function exportAllLhb(btn){
+  const old = btn ? btn.textContent : "";
+  if(btn){ btn.disabled = true; btn.textContent = "正在拉取 6 类数据…"; }
+  const res = await Promise.all(LHB_TABS.map(t => getLhbTab(t.k).then(r => ({t, rows:r.rows})).catch(()=>({t, rows:[]}))));
+  const sheets = [];
+  res.forEach(({t, rows}) => { if(rows.length) sheets.push({name:LHB.code + "_" + t.n, rows, header:lhbTable(t.k, rows).cols}); });
+  if(btn){ btn.disabled = false; btn.textContent = old; }
+  if(!sheets.length){ toast("没有可用数据可导出","err"); return; }
+  exportMulti(sheets, `${LHB.code}_期货龙虎榜_${LHB.date||META.tradeDate}.xlsx`);
+}
+
+/* =====================================================================
+   7. 品种资讯
+   ===================================================================== */
+const NW = {kw:"", onlyHit:false};
+RENDER.news = function(){
+  const wrap = el("div");
+  wrap.append(el("div",{class:"notice info", html:
+    "<b>数据源：</b>东方财富期货频道 <code>futures.eastmoney.com/a/</code> 的品种资讯页与品种评论页；"
+    + "新浪财经期货频道 <code>finance.sina.com.cn/money/future/</code> 的品种资讯页，以及新浪期货品种行情页。<br>"
+    + "东方财富只对部分品种单独建立了资讯页；<b>未建立页面的品种</b>已明确标注并给出频道入口，不会给出失效链接。"}));
+  const bar = el("div",{class:"bar"});
+  const q = el("input",{type:"search",placeholder:"搜索品种代码 / 名称 / 交易所", style:"width:230px"});
+  const cb = el("span",{class:"chip"+(NW.onlyHit?" on":""), onclick:()=>{ NW.onlyHit = !NW.onlyHit; RENDER.news(); },
+    html:"仅显示有东财资讯页的品种"});
+  const stat = el("span",{class:"mini"});
+  q.oninput = ()=>{ NW.kw = q.value.trim(); paint(); };
+  bar.append(q, cb, stat);
+  bar.append(el("button",{class:"btn", onclick:()=>exportSheet(newsRows(), [
+    {key:"variety",label:"品种代码",w:10},{key:"name",label:"品种名称",w:12},{key:"exchName",label:"交易所",w:14},
+    {key:"sector",label:"品种类型",w:10},{key:"night",label:"夜盘",w:8},
+    {key:"emNews",label:"东财资讯页",w:48},{key:"emNewsComment",label:"东财评论页",w:48},
+    {key:"sinaNews",label:"新浪资讯页",w:48},{key:"sinaQuote",label:"新浪行情页",w:48},
+    {key:"note",label:"备注",w:34}], `期货品种资讯链接_${todayStr()}.xlsx`, "品种资讯链接"), html:"导出链接表 Excel"}));
+  wrap.append(el("div",{class:"card"}, el("div",{class:"hd2"}, el("h3",{},"品种资讯链接总览"),
+    el("div",{class:"desc",html:"每个品种对应的东方财富 / 新浪财经资讯与行情入口"})), el("div",{class:"bd"}, bar)));
+  const grid = el("div",{class:"grid g3"});
+  wrap.append(grid);
+  function newsRows(){
+    return VARIETIES.filter(v => {
+      const n = NEWS[v.variety] || {};
+      if(!(n.emNews || n.sinaNews)) return false;
+      if(NW.onlyHit && !n.emNews) return false;
+      return true;
+    }).map(v => {
+      const n = NEWS[v.variety] || {};
+      return Object.assign({}, v, {night:v.night?"有":"无", emNews:n.emNews||"", emNewsComment:n.emNewsComment||"",
+        sinaNews:n.sinaNews||"", sinaQuote:n.sinaQuote||"", note:n.note||""});
+    }).sort((a,b)=>a.exchName.localeCompare(b.exchName,'zh-CN') || a.variety.localeCompare(b.variety));
+  }
+  function paint(){
+    const all = newsRows();
+    const k = NW.kw.toUpperCase();
+    let vs = all;
+    if(NW.kw) vs = all.filter(v => v.variety.includes(k) || v.name.includes(NW.kw) || v.exchName.includes(NW.kw));
+    stat.textContent = `　共 ${all.length} 个品种有资讯入口，当前显示 ${vs.length} 个`;
+    grid.innerHTML = "";
+    if(!vs.length){ grid.append(el("div",{class:"empty", style:"grid-column:1/-1"},"没有匹配的品种")); return; }
+    vs.forEach(v => {
+      const n = NEWS[v.variety] || {};
+      const c = el("div",{class:"newscard"});
+      c.append(el("h4",{}, el("span",{class:"dot"}), v.name,
+        el("span",{class:"tag k-real"}, v.variety),
+        el("span",{class:"mini"}, v.exchName),
+        el("span",{class:"mini"}, v.night==="有"?"· 有夜盘":"· 无夜盘")));
+      const L = el("div",{class:"links"});
+      const lnk = (href, txt, k2) => href
+        ? L.append(el("a",{href,target:"_blank",rel:"noopener"}, el("span",{class:"dot "+(k2||"")}), txt, el("span",{class:"mini",html:"↗"})))
+        : L.append(el("div",{class:"none"}, "· " + txt + "：暂无"));
+      lnk(n.emNews, "东方财富 · " + (n.emNewsTitle ? String(n.emNewsTitle).replace(/[_ ]*东方财富网.*$/,"") : v.name) + "（品种资讯页）", "em");
+      lnk(n.emNewsComment, "东方财富 · " + v.name + "评论页", "em");
+      lnk(n.sinaNews, "新浪财经 · " + v.name + "资讯页", "sina");
+      lnk(n.sinaQuote, "新浪财经 · " + v.name + "行情页", "sina");
+      if(!n.emNews) L.append(el("div",{class:"none", html:"※ " + (n.note || "东方财富未单独设立该品种资讯页")}));
+      c.append(L);
+      const acts = el("div",{class:"bar", style:"margin:10px 0 0"});
+      acts.append(el("button",{class:"btn", onclick:()=>{ VY.v = v.variety; switchPage("variety"); }, html:"看品种行情"}));
+      acts.append(el("button",{class:"btn", onclick:()=>{ KL.code = (VAR_BY[v.variety]||{}).sinaLink || KL.code; switchPage("kline"); }, html:"看K线"}));
+      acts.append(el("button",{class:"btn", onclick:()=>{
+        const lc = v.lhbCode; if(lc && LHB_INDEX[lc]){ LHB.code = lc; } switchPage("lhb"); }, html:"看龙虎榜"}));
+      if(n.emNewsChannel) acts.append(el("a",{class:"btn",href:n.emNewsChannel,target:"_blank",html:"东财频道"}));
+      if(n.sinaChannel) acts.append(el("a",{class:"btn",href:n.sinaChannel,target:"_blank",html:"新浪频道"}));
+      c.append(acts);
+      grid.append(c);
+    });
+  }
+  paint();
+  setView(wrap);
+};
+
+/* =====================================================================
+   启动
+   ===================================================================== */
+(function boot(){
+  if(!CONTRACTS.length){
+    renderHeader();
+    renderFooter();
+    setView(el("div",{class:"notice err", html:
+      "<b>未加载到数据。</b>请先运行 <code>采集期货数据.py</code> 生成数据，"
+      + "再运行 <code>生成终端页面.py</code> 重新打包本页面。"}));
+    return;
+  }
+  renderHeader();
+  renderFooter();
+  initLiveRefresh();
+  if(!location.hash) history.replaceState(null, "", "#overview");
+  window.addEventListener("hashchange", applyHash);
+  applyHash();
+  let rt = null;
+  window.addEventListener("resize", ()=>{
+    clearTimeout(rt);
+    rt = setTimeout(()=>{ if(KL.chart) KL.chart.resize(); }, 160);
+  });
+})();
+</script>
+</body>
+</html>

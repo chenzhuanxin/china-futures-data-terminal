@@ -1,0 +1,33 @@
+# UTF-8
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(1, 0, 0, 0),
+    prodvers=(1, 0, 0, 0),
+    mask=0x3F,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0),
+  ),
+  kids=[
+    StringFileInfo(
+      [
+        StringTable(
+          "080404b0",
+          [
+            StringStruct("CompanyName", "陈专新"),
+            StringStruct("FileDescription", "国内期货全量数据终端 · 一键启动器"),
+            StringStruct("FileVersion", "1.0.0.0"),
+            StringStruct("InternalName", "期货数据终端启动器"),
+            StringStruct("LegalCopyright", "陈专新（微信 gongqizi0）"),
+            StringStruct("OriginalFilename", "国内期货数据终端.exe"),
+            StringStruct("ProductName", "国内期货全量数据终端"),
+            StringStruct("ProductVersion", "1.0.0.0"),
+          ],
+        )
+      ]
+    ),
+    VarFileInfo([VarStruct("Translation", [2052, 1200])]),
+  ],
+)
